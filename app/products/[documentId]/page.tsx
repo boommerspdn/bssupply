@@ -1,14 +1,28 @@
-import { notFound } from "next/navigation"
-
 import { PageBreadcrumbs } from "@/components/layouts/page-breadcrumbs"
 import { Badge } from "@/components/ui/badge"
+import { EmptyState } from "@/components/ui/empty-state"
 import { formatPrice, getConditionLabel } from "@/lib/format"
+import { seoMetadata } from "@/lib/metadata"
 import { getProductByDocumentId, getSiteSettings } from "@/lib/strapi/client"
 
 import { ContactPanel } from "./_components/ContactPanel"
 import { ProductGallery } from "./_components/ProductGallery"
 
 type ProductPageParams = Promise<{ documentId: string }>
+
+export async function generateMetadata({ params }: { params: ProductPageParams }) {
+  const { documentId } = await params
+  const product = await getProductByDocumentId(documentId)
+
+  return seoMetadata(null, {
+    title: product ? `${product.name} | BS Supply` : "ไม่พบสินค้า | BS Supply",
+    description:
+      product?.summary ||
+      product?.description ||
+      "ดูรายละเอียดสินค้า อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าซัพพลายจาก BS Supply พร้อมสอบถามสต็อกล่าสุด",
+    image: product?.images[0],
+  })
+}
 
 export default async function ProductPage({ params }: { params: ProductPageParams }) {
   const { documentId } = await params
@@ -17,7 +31,23 @@ export default async function ProductPage({ params }: { params: ProductPageParam
     getSiteSettings(),
   ])
 
-  if (!product) notFound()
+  if (!product) {
+    return (
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
+        <PageBreadcrumbs
+          items={[
+            { label: "หน้าแรก", href: "/" },
+            { label: "สินค้าทั้งหมด", href: "/products" },
+            { label: "ไม่พบสินค้า" },
+          ]}
+        />
+        <EmptyState
+          title="ไม่พบสินค้านี้"
+          description="สินค้าอาจถูกลบหรือยังไม่พร้อมแสดงผล ลองดูสินค้าทั้งหมดหรือส่งรายละเอียดให้ทีมงานช่วยตรวจสอบ"
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
@@ -41,9 +71,11 @@ export default async function ProductPage({ params }: { params: ProductPageParam
         <ProductGallery product={product} />
 
         <section className="grid gap-4">
-          <div className="flex flex-wrap gap-2">
-            <Badge tone="muted">{getConditionLabel(product.condition)}</Badge>
-          </div>
+          {product.condition ? (
+            <div className="flex flex-wrap gap-2">
+              <Badge tone="muted">{getConditionLabel(product.condition)}</Badge>
+            </div>
+          ) : null}
           <div>
             <h1 className="text-2xl font-semibold leading-tight">{product.name}</h1>
             <p className="mt-2 text-xl font-semibold text-primary">

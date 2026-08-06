@@ -1,10 +1,22 @@
 import Link from "next/link"
 
+import { ImagePlaceholder } from "@/components/image-placeholder"
 import { ProductCard } from "@/components/product-card"
 import { ReliableImage } from "@/components/reliable-image"
+import { seoMetadata } from "@/lib/metadata"
 import { getHomePage, getProducts } from "@/lib/strapi/client"
 
 import { HomeSearch } from "./_components/HomeSearch"
+
+export async function generateMetadata() {
+  const home = await getHomePage()
+
+  return seoMetadata(home.seo, {
+    title: "BS Supply | อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าอุตสาหกรรม",
+    description: home.subheadline,
+    image: home.heroImage,
+  })
+}
 
 export default async function HomePage() {
   const [home, fallbackProducts] = await Promise.all([
@@ -17,7 +29,7 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto grid max-w-7xl gap-12 px-4 py-10 sm:px-6 lg:px-8">
-      <section className="grid gap-6 py-8 md:grid-cols-[minmax(0,1fr)_420px] md:items-end lg:grid-cols-[minmax(0,1fr)_480px]">
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_480px] lg:items-center">
         <div className="grid max-w-3xl gap-5">
           <p className="text-sm font-medium text-primary">สินค้าซัพพลายสำหรับงานจริง</p>
           <h1 className="text-3xl font-semibold leading-tight tracking-normal sm:text-5xl">
@@ -30,15 +42,17 @@ export default async function HomePage() {
           ) : null}
           <HomeSearch placeholder={home.searchPlaceholder} />
         </div>
-        {home.heroImage ? (
-          <figure className="aspect-[4/3] overflow-hidden rounded-lg shadow-lg bg-muted">
+        <figure className="aspect-[4/3] overflow-hidden rounded-lg bg-muted shadow-lg">
+          {home.heroImage ? (
             <ReliableImage
               src={home.heroImage.url}
               alt={home.heroImage.alternativeText || home.headline}
               className="h-full w-full object-cover"
             />
-          </figure>
-        ) : null}
+          ) : (
+            <ImagePlaceholder />
+          )}
+        </figure>
       </section>
 
       <section className="grid gap-4">

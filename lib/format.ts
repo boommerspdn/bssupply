@@ -1,4 +1,5 @@
 import { DEFAULT_CURRENCY, DEFAULT_LOCALE } from "@/constants"
+import type { ProductCondition } from "@/types/catalog"
 
 export function formatPrice(price?: number | null, priceNote?: string | null) {
   if (typeof price === "number") {
@@ -12,15 +13,14 @@ export function formatPrice(price?: number | null, priceNote?: string | null) {
   return priceNote || "สอบถามราคา"
 }
 
-export function getConditionLabel(condition: string) {
-  const labels: Record<string, string> = {
+export function getConditionLabel(condition: ProductCondition) {
+  const labels: Record<ProductCondition, string> = {
     new: "สินค้าใหม่",
     used: "มือสอง",
-    refurbished: "ปรับสภาพแล้ว",
     for_parts: "อะไหล่",
   }
 
-  return labels[condition] || condition
+  return labels[condition]
 }
 
 export function getLineFriendAddUrl(lineId: string) {

@@ -5,6 +5,7 @@ import type {
   SupplyCategory,
   SupplyProduct,
 } from "@/types/catalog"
+import { isProductCondition } from "@/types/catalog"
 
 const STRAPI_URL = process.env.STRAPI_URL || process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337"
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN
@@ -22,6 +23,10 @@ const FALLBACK_SITE_SETTING: SiteSetting = {
   address: "กรุงเทพฯ และพื้นที่ใกล้เคียง",
   hours: "ติดต่อสอบถามเวลาทำการ",
   contactNote: "ส่งชื่อสินค้า รุ่น หรือรูปสินค้าที่สนใจมาให้ทีมงานตรวจสอบสต็อกได้",
+  seo: {
+    title: "BS Supply | อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าซัพพลาย",
+    description: "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง",
+  },
 }
 
 const FALLBACK_HOME: HomePageContent = {
@@ -31,6 +36,11 @@ const FALLBACK_HOME: HomePageContent = {
   searchPlaceholder: "ค้นหาสินค้า รุ่น ยี่ห้อ หรือหมวดหมู่",
   heroImage: null,
   featuredProducts: [],
+  seo: {
+    title: "BS Supply | อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าอุตสาหกรรม",
+    description:
+      "เลือกซื้ออุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าอุตสาหกรรมมือหนึ่งและมือสองจาก BS Supply พร้อมตรวจสอบสภาพและสต็อกล่าสุด",
+  },
 }
 
 function getData<T>(response: unknown): T | null {
@@ -71,6 +81,15 @@ function normalizeMediaList(value: unknown) {
     )
 }
 
+function normalizeSeo(value: unknown) {
+  const entity = getData<StrapiEntity>(value) ?? (value as StrapiEntity | null)
+  const seo = fields(entity)
+  const title = typeof seo.title === "string" ? seo.title : null
+  const description = typeof seo.description === "string" ? seo.description : null
+
+  return title || description ? { title, description } : null
+}
+
 function normalizeCategory(entity: StrapiEntity | null | undefined): SupplyCategory | null {
   const category = fields(entity)
   const documentId = typeof category.documentId === "string" ? category.documentId : ""
@@ -101,10 +120,7 @@ function normalizeProduct(entity: StrapiEntity | null | undefined): SupplyProduc
     description: typeof product.description === "string" ? product.description : null,
     images: normalizeMediaList(product.images),
     category: normalizeCategory(getData<StrapiEntity>(product.category)),
-    condition:
-      typeof product.condition === "string"
-        ? (product.condition as SupplyProduct["condition"])
-        : "used",
+    condition: isProductCondition(product.condition) ? product.condition : null,
     brand: typeof product.brand === "string" ? product.brand : null,
     model: typeof product.model === "string" ? product.model : null,
     price: typeof product.price === "number" ? product.price : null,
@@ -211,6 +227,7 @@ export async function getSiteSettings(): Promise<SiteSetting> {
     address: typeof setting.address === "string" ? setting.address : null,
     hours: typeof setting.hours === "string" ? setting.hours : null,
     contactNote: typeof setting.contactNote === "string" ? setting.contactNote : null,
+    seo: normalizeSeo(setting.seo),
   }
 }
 
@@ -233,6 +250,7 @@ export async function getHomePage(): Promise<HomePageContent> {
     featuredProducts: (getData<StrapiEntity[]>(home.featuredProducts) || [])
       .map(normalizeProduct)
       .filter(Boolean) as SupplyProduct[],
+    seo: normalizeSeo(home.seo),
   }
 }
 

@@ -1,8 +1,9 @@
 import { PageBreadcrumbs } from "@/components/layouts/page-breadcrumbs"
 import { ProductCard } from "@/components/product-card"
 import { EmptyState } from "@/components/ui/empty-state"
-import { getCategories, getProducts } from "@/lib/strapi/client"
-import type { ProductCondition } from "@/types/catalog"
+import { seoMetadata } from "@/lib/metadata"
+import { getCategories, getProducts, getSiteSettings } from "@/lib/strapi/client"
+import { isProductCondition } from "@/types/catalog"
 
 import { ProductFilters } from "./_components/ProductFilters"
 
@@ -10,6 +11,17 @@ type ProductsSearchParams = Promise<Record<string, string | string[] | undefined
 
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value
+}
+
+export async function generateMetadata() {
+  const setting = await getSiteSettings()
+
+  return seoMetadata(null, {
+    title: "สินค้าทั้งหมด | BS Supply",
+    description:
+      "ค้นหาอุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าซัพพลายมือหนึ่งและมือสองจาก BS Supply ตามชื่อสินค้า รุ่น ยี่ห้อ หรือหมวดหมู่",
+    image: setting.logo,
+  })
 }
 
 export default async function ProductsPage({
@@ -20,7 +32,8 @@ export default async function ProductsPage({
   const params = await searchParams
   const query = first(params.q)
   const category = first(params.category)
-  const condition = first(params.condition) as ProductCondition | undefined
+  const conditionParam = first(params.condition)
+  const condition = isProductCondition(conditionParam) ? conditionParam : undefined
   const sort = first(params.sort) as "featured" | "newest" | "price-asc" | "price-desc" | undefined
 
   const [categories, products] = await Promise.all([

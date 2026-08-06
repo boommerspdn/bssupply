@@ -1,8 +1,22 @@
-export type ProductCondition = "new" | "used" | "refurbished" | "for_parts"
+export const PRODUCT_CONDITIONS = ["new", "used", "for_parts"] as const
+
+export type ProductCondition = (typeof PRODUCT_CONDITIONS)[number]
+
+export function isProductCondition(value: unknown): value is ProductCondition {
+  return (
+    typeof value === "string" &&
+    (PRODUCT_CONDITIONS as readonly string[]).includes(value)
+  )
+}
 
 export interface MediaAsset {
   url: string
   alternativeText?: string | null
+}
+
+export interface SeoData {
+  title?: string | null
+  description?: string | null
 }
 
 export interface ProductSpec {
@@ -25,7 +39,7 @@ export interface SupplyProduct {
   description?: string | null
   images: MediaAsset[]
   category?: SupplyCategory | null
-  condition: ProductCondition
+  condition: ProductCondition | null
   brand?: string | null
   model?: string | null
   price?: number | null
@@ -43,6 +57,7 @@ export interface HomePageContent {
   subheadline?: string | null
   searchPlaceholder: string
   featuredProducts: SupplyProduct[]
+  seo?: SeoData | null
 }
 
 export interface SiteSetting {
@@ -53,6 +68,7 @@ export interface SiteSetting {
   address?: string | null
   hours?: string | null
   contactNote?: string | null
+  seo?: SeoData | null
 }
 
 export interface ProductFilters {

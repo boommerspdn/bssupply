@@ -2,7 +2,6 @@ export const CONDITION_OPTIONS = [
   { value: "", label: "ทุกสภาพ" },
   { value: "new", label: "สินค้าใหม่" },
   { value: "used", label: "มือสอง" },
-  { value: "refurbished", label: "ปรับสภาพแล้ว" },
   { value: "for_parts", label: "อะไหล่" },
 ]
 

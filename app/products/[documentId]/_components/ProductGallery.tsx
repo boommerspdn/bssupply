@@ -1,3 +1,4 @@
+import { ImagePlaceholder } from "@/components/image-placeholder"
 import { ReliableImage } from "@/components/reliable-image"
 import type { SupplyProduct } from "@/types/catalog"
 
@@ -6,7 +7,7 @@ export function ProductGallery({ product }: { product: SupplyProduct }) {
 
   return (
     <div className="grid gap-3">
-      <div className="aspect-[4/3] overflow-hidden rounded-lg border bg-white">
+      <div className="aspect-[4/3] overflow-hidden rounded-lg border bg-muted">
         {primary ? (
           <ReliableImage
             src={primary.url}
@@ -14,9 +15,7 @@ export function ProductGallery({ product }: { product: SupplyProduct }) {
             className="size-full object-contain"
           />
         ) : (
-          <div className="grid size-full place-items-center text-sm text-muted-foreground">
-            ไม่มีรูปสินค้า
-          </div>
+          <ImagePlaceholder />
         )}
       </div>
       {rest.length ? (
@@ -24,7 +23,7 @@ export function ProductGallery({ product }: { product: SupplyProduct }) {
           {rest.slice(0, 4).map((image) => (
             <div
               key={image.url}
-              className="aspect-square overflow-hidden rounded-md border bg-white"
+              className="aspect-square overflow-hidden rounded-md border bg-muted"
             >
               <ReliableImage
                 src={image.url}

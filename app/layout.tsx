@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Footer } from "@/components/layouts/footer"
 import { Navbar } from "@/components/layouts/navbar"
 import { APP_NAME } from "@/constants"
+import { seoMetadata } from "@/lib/metadata"
 import { getCategories, getSiteSettings } from "@/lib/strapi/client"
 import { cn } from "@/lib/utils"
 
@@ -19,9 +20,15 @@ const fontMono = Geist_Mono({
   variable: "--font-mono",
 })
 
-export const metadata: Metadata = {
-  title: APP_NAME,
-  description: "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง",
+export async function generateMetadata(): Promise<Metadata> {
+  const setting = await getSiteSettings()
+
+  return seoMetadata(setting.seo, {
+    title: APP_NAME,
+    description: "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง",
+    icon: setting.logo,
+    image: setting.logo,
+  })
 }
 
 export default async function RootLayout({

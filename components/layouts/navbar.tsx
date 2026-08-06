@@ -2,11 +2,20 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronDown, Menu, Phone } from "lucide-react"
+import { ChevronDown, Menu, Phone, X } from "lucide-react"
 
 import { APP_NAME } from "@/constants"
 import type { SiteSetting, SupplyCategory } from "@/types/catalog"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { getLineFriendAddUrl } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -20,6 +29,12 @@ export function Navbar({
   categories: SupplyCategory[]
 }) {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  function closeMenus() {
+    setIsCategoryOpen(false)
+    setIsMobileMenuOpen(false)
+  }
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
@@ -28,11 +43,14 @@ export function Navbar({
           href="/"
           className="flex min-w-0 items-center"
           aria-label={setting.storeName || APP_NAME}
+          onClick={closeMenus}
         >
           {setting.logo ? (
             <img
               src={setting.logo.url}
-              alt={setting.logo.alternativeText || setting.storeName || APP_NAME}
+              alt={
+                setting.logo.alternativeText || setting.storeName || APP_NAME
+              }
               className="max-h-10 w-auto object-contain"
             />
           ) : (
@@ -48,27 +66,45 @@ export function Navbar({
               <div
                 key={link.href}
                 className="relative"
-                onMouseEnter={() => setIsCategoryOpen(true)}
-                onMouseLeave={() => setIsCategoryOpen(false)}
-                onFocus={() => setIsCategoryOpen(true)}
                 onBlur={(event) => {
                   if (!event.currentTarget.contains(event.relatedTarget)) {
                     setIsCategoryOpen(false)
                   }
                 }}
               >
-                <Button asChild variant="ghost" className="gap-1.5">
-                  <Link href={link.href} aria-haspopup="true" onClick={() => setIsCategoryOpen(false)}>
-                    {link.label}
-                    <ChevronDown className="size-4" aria-hidden="true" />
-                  </Link>
-                </Button>
-                <div
+                <button
+                  type="button"
+                  aria-haspopup="true"
+                  aria-expanded={isCategoryOpen}
+                  aria-controls="desktop-category-menu"
                   className={cn(
-                    "invisible absolute left-0 top-full z-40 w-72 translate-y-2 rounded-lg border bg-popover p-2 opacity-0 shadow-sm transition-all",
-                    isCategoryOpen && "visible translate-y-1 opacity-100",
+                    buttonVariants({ variant: "ghost" }),
+                    "gap-1.5"
+                  )}
+                  onClick={() => setIsCategoryOpen((isOpen) => !isOpen)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      setIsCategoryOpen(false)
+                    }
+                  }}
+                >
+                  {link.label}
+                  <ChevronDown className="size-4" aria-hidden="true" />
+                </button>
+                <div
+                  id="desktop-category-menu"
+                  className={cn(
+                    "invisible absolute top-full left-0 z-40 w-72 translate-y-2 rounded-lg border bg-popover p-2 opacity-0 shadow-sm transition-all",
+                    isCategoryOpen && "visible translate-y-1 opacity-100"
                   )}
                 >
+                  <Link
+                    href={link.href}
+                    className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+                    onClick={() => setIsCategoryOpen(false)}
+                  >
+                    ดูสินค้าทั้งหมด
+                  </Link>
                   {categories.map((category) => (
                     <Link
                       key={category.documentId}
@@ -82,10 +118,14 @@ export function Navbar({
                 </div>
               </div>
             ) : (
-              <Button key={link.href} asChild variant="ghost">
-                <Link href={link.href}>{link.label}</Link>
-              </Button>
-            ),
+              <Link
+                key={link.href}
+                href={link.href}
+                className={buttonVariants({ variant: "ghost" })}
+              >
+                {link.label}
+              </Link>
+            )
           )}
         </nav>
 
@@ -119,9 +159,63 @@ export function Navbar({
               <Link href="/contact">สอบถามสินค้า</Link>
             </Button>
           )}
-          <Button variant="outline" size="icon" className="md:hidden" aria-label="เมนู">
-            <Menu aria-hidden="true" />
-          </Button>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="bg-white hover:bg-white/90 md:hidden"
+                aria-label="เมนู"
+              >
+                {isMobileMenuOpen ? (
+                  <X aria-hidden="true" />
+                ) : (
+                  <Menu aria-hidden="true" />
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="w-[min(22rem,85vw)] p-0 md:hidden"
+            >
+              <SheetHeader className="border-b">
+                <SheetTitle>เมนู</SheetTitle>
+                <SheetDescription className="sr-only">
+                  ลิงก์นำทางหลักและหมวดหมู่สินค้า
+                </SheetDescription>
+              </SheetHeader>
+              <nav className="grid gap-1 px-4" aria-label="เมนูมือถือ">
+                {NAV_LINKS.map((link) => (
+                  <SheetClose key={link.href} asChild>
+                    <Link
+                      href={link.href}
+                      className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+                    >
+                      {link.label}
+                    </Link>
+                  </SheetClose>
+                ))}
+                {categories.length ? (
+                  <div className="mt-2 grid gap-1 border-t pt-2">
+                    <p className="px-3 py-1 text-xs font-medium text-muted-foreground">
+                      หมวดหมู่สินค้า
+                    </p>
+                    {categories.map((category) => (
+                      <SheetClose key={category.documentId} asChild>
+                        <Link
+                          href={`/categories/${category.documentId}`}
+                          className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                        >
+                          {category.name}
+                        </Link>
+                      </SheetClose>
+                    ))}
+                  </div>
+                ) : null}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
