@@ -6,8 +6,25 @@ import type { MediaAsset, SeoData } from "@/types/catalog"
 const DEFAULT_DESCRIPTION =
   "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง"
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000"
+
 function clean(value?: string | null) {
   return typeof value === "string" ? value.trim() : ""
+}
+
+export function sitePath(path = "/") {
+  if (path === "/") return "/"
+
+  const normalized = path.startsWith("/") ? path : `/${path}`
+  const lastSegment = normalized.split("/").pop() ?? ""
+  if (lastSegment.includes(".")) return normalized
+
+  return normalized.endsWith("/") ? normalized : `${normalized}/`
+}
+
+export function siteUrl(path = "/") {
+  return `${SITE_URL}${sitePath(path)}`
 }
 
 export function seoMetadata(

@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layouts/navbar"
 import { APP_NAME } from "@/constants"
 import { seoMetadata } from "@/lib/metadata"
 import { getCategories, getSiteSettings } from "@/lib/strapi/client"
+import { JsonLd, localBusinessJsonLd, websiteJsonLd } from "@/lib/structured-data"
 import { cn } from "@/lib/utils"
 
 const fontSans = Noto_Sans_Thai({
@@ -45,6 +46,8 @@ export default async function RootLayout({
       className={cn("antialiased", fontMono.variable, fontSans.variable)}
     >
       <body>
+        <JsonLd data={localBusinessJsonLd(setting)} />
+        <JsonLd data={websiteJsonLd()} />
         <ThemeProvider>
           <div className="flex min-h-svh flex-col">
             <Navbar setting={setting} categories={categories} />
