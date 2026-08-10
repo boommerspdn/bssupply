@@ -7,7 +7,10 @@ import type {
 } from "@/types/catalog"
 import { isProductCondition } from "@/types/catalog"
 
-const STRAPI_URL = process.env.STRAPI_URL || process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337"
+const STRAPI_URL =
+  process.env.STRAPI_URL ||
+  process.env.NEXT_PUBLIC_STRAPI_URL ||
+  "http://localhost:1337"
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN
 
 type StrapiEntity = Record<string, unknown> & {
@@ -22,15 +25,18 @@ const FALLBACK_SITE_SETTING: SiteSetting = {
   lineId: "",
   address: "กรุงเทพฯ และพื้นที่ใกล้เคียง",
   hours: "ติดต่อสอบถามเวลาทำการ",
-  contactNote: "ส่งชื่อสินค้า รุ่น หรือรูปสินค้าที่สนใจมาให้ทีมงานตรวจสอบสต็อกได้",
+  contactNote:
+    "ส่งชื่อสินค้า รุ่น หรือรูปสินค้าที่สนใจมาให้ทีมงานตรวจสอบสต็อกได้",
   seo: {
     title: "BS Supply | อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าซัพพลาย",
-    description: "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง",
+    description:
+      "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง",
   },
 }
 
 const FALLBACK_HOME: HomePageContent = {
-  headline: "อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าซัพพลายมือสองที่คัดมาให้ใช้งานจริง",
+  headline:
+    "อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าซัพพลายมือสองที่คัดมาให้ใช้งานจริง",
   subheadline:
     "ค้นหาสินค้าตามชื่อ รุ่น หมวดหมู่ หรือรายละเอียด แล้วติดต่อทีมงานเพื่อตรวจสอบสภาพและสต็อกล่าสุด",
   searchPlaceholder: "ค้นหาสินค้า รุ่น ยี่ห้อ หรือหมวดหมู่",
@@ -50,7 +56,9 @@ function getData<T>(response: unknown): T | null {
 
 function fields(entity: StrapiEntity | null | undefined) {
   if (!entity) return {}
-  return entity.attributes ? { ...entity.attributes, documentId: entity.documentId } : entity
+  return entity.attributes
+    ? { ...entity.attributes, documentId: entity.documentId }
+    : entity
 }
 
 function mediaUrl(url?: unknown) {
@@ -73,11 +81,13 @@ function normalizeMedia(value: unknown) {
 }
 
 function normalizeMediaList(value: unknown) {
-  const data = getData<StrapiEntity[]>(value) ?? (Array.isArray(value) ? value : [])
+  const data =
+    getData<StrapiEntity[]>(value) ?? (Array.isArray(value) ? value : [])
   return data
     .map(normalizeMedia)
     .filter(
-      (media): media is NonNullable<ReturnType<typeof normalizeMedia>> => media !== null
+      (media): media is NonNullable<ReturnType<typeof normalizeMedia>> =>
+        media !== null
     )
 }
 
@@ -85,14 +95,18 @@ function normalizeSeo(value: unknown) {
   const entity = getData<StrapiEntity>(value) ?? (value as StrapiEntity | null)
   const seo = fields(entity)
   const title = typeof seo.title === "string" ? seo.title : null
-  const description = typeof seo.description === "string" ? seo.description : null
+  const description =
+    typeof seo.description === "string" ? seo.description : null
 
   return title || description ? { title, description } : null
 }
 
-function normalizeCategory(entity: StrapiEntity | null | undefined): SupplyCategory | null {
+function normalizeCategory(
+  entity: StrapiEntity | null | undefined
+): SupplyCategory | null {
   const category = fields(entity)
-  const documentId = typeof category.documentId === "string" ? category.documentId : ""
+  const documentId =
+    typeof category.documentId === "string" ? category.documentId : ""
   const name = typeof category.name === "string" ? category.name : ""
 
   if (!documentId || !name) return null
@@ -100,15 +114,19 @@ function normalizeCategory(entity: StrapiEntity | null | undefined): SupplyCateg
   return {
     documentId,
     name,
-    description: typeof category.description === "string" ? category.description : null,
+    description:
+      typeof category.description === "string" ? category.description : null,
     image: normalizeMedia(category.image),
     sortOrder: typeof category.sortOrder === "number" ? category.sortOrder : 0,
   }
 }
 
-function normalizeProduct(entity: StrapiEntity | null | undefined): SupplyProduct | null {
+function normalizeProduct(
+  entity: StrapiEntity | null | undefined
+): SupplyProduct | null {
   const product = fields(entity)
-  const documentId = typeof product.documentId === "string" ? product.documentId : ""
+  const documentId =
+    typeof product.documentId === "string" ? product.documentId : ""
   const name = typeof product.name === "string" ? product.name : ""
 
   if (!documentId || !name) return null
@@ -117,7 +135,8 @@ function normalizeProduct(entity: StrapiEntity | null | undefined): SupplyProduc
     documentId,
     name,
     summary: typeof product.summary === "string" ? product.summary : null,
-    description: typeof product.description === "string" ? product.description : null,
+    description:
+      typeof product.description === "string" ? product.description : null,
     images: normalizeMediaList(product.images),
     category: normalizeCategory(getData<StrapiEntity>(product.category)),
     condition: isProductCondition(product.condition) ? product.condition : null,
@@ -125,7 +144,8 @@ function normalizeProduct(entity: StrapiEntity | null | undefined): SupplyProduc
     model: typeof product.model === "string" ? product.model : null,
     price: typeof product.price === "number" ? product.price : null,
     priceNote: typeof product.priceNote === "string" ? product.priceNote : null,
-    locationNote: typeof product.locationNote === "string" ? product.locationNote : null,
+    locationNote:
+      typeof product.locationNote === "string" ? product.locationNote : null,
     tags: Array.isArray(product.tags)
       ? product.tags.filter((tag): tag is string => typeof tag === "string")
       : [],
@@ -139,14 +159,20 @@ function normalizeProduct(entity: StrapiEntity | null | undefined): SupplyProduc
               value: typeof item.value === "string" ? item.value : "",
             }
           })
-          .filter((spec): spec is { label: string; value: string } => Boolean(spec?.label && spec.value))
+          .filter((spec): spec is { label: string; value: string } =>
+            Boolean(spec?.label && spec.value)
+          )
       : [],
     featured: Boolean(product.featured),
-    publishedAt: typeof product.publishedAt === "string" ? product.publishedAt : null,
+    publishedAt:
+      typeof product.publishedAt === "string" ? product.publishedAt : null,
   }
 }
 
-async function fetchStrapi<T>(path: string, params?: URLSearchParams): Promise<T | null> {
+async function fetchStrapi<T>(
+  path: string,
+  params?: URLSearchParams
+): Promise<T | null> {
   const url = new URL(`/api/${path}`, STRAPI_URL)
   params?.forEach((value, key) => url.searchParams.set(key, value))
 
@@ -211,7 +237,10 @@ function productQueryParams(filters: ProductFilters = {}) {
 }
 
 export async function getSiteSettings(): Promise<SiteSetting> {
-  const response = await fetchStrapi<unknown>("bssupply-site-setting", populateParams())
+  const response = await fetchStrapi<unknown>(
+    "bssupply-site-setting",
+    populateParams()
+  )
   const entity = getData<StrapiEntity>(response)
   const setting = fields(entity)
 
@@ -220,29 +249,40 @@ export async function getSiteSettings(): Promise<SiteSetting> {
   const lineId = typeof setting.lineId === "string" ? setting.lineId.trim() : ""
 
   return {
-    storeName: typeof setting.storeName === "string" ? setting.storeName : "BS Supply",
+    storeName:
+      typeof setting.storeName === "string" ? setting.storeName : "BS Supply",
     logo: normalizeMedia(setting.logo),
+    favicon: normalizeMedia(setting.favicon),
     phone: typeof setting.phone === "string" ? setting.phone : null,
     lineId: lineId || null,
     address: typeof setting.address === "string" ? setting.address : null,
     hours: typeof setting.hours === "string" ? setting.hours : null,
-    contactNote: typeof setting.contactNote === "string" ? setting.contactNote : null,
+    contactNote:
+      typeof setting.contactNote === "string" ? setting.contactNote : null,
     seo: normalizeSeo(setting.seo),
   }
 }
 
 export async function getHomePage(): Promise<HomePageContent> {
-  const response = await fetchStrapi<unknown>("bssupply-home-page", populateParams())
+  const response = await fetchStrapi<unknown>(
+    "bssupply-home-page",
+    populateParams()
+  )
   const entity = getData<StrapiEntity>(response)
   const home = fields(entity)
 
   if (!entity) return FALLBACK_HOME
 
   return {
-    headline: typeof home.headline === "string" ? home.headline : FALLBACK_HOME.headline,
+    headline:
+      typeof home.headline === "string"
+        ? home.headline
+        : FALLBACK_HOME.headline,
     heroImage: normalizeMedia(home.heroImage),
     subheadline:
-      typeof home.subheadline === "string" ? home.subheadline : FALLBACK_HOME.subheadline,
+      typeof home.subheadline === "string"
+        ? home.subheadline
+        : FALLBACK_HOME.subheadline,
     searchPlaceholder:
       typeof home.searchPlaceholder === "string"
         ? home.searchPlaceholder
@@ -264,21 +304,30 @@ export async function getCategories(): Promise<SupplyCategory[]> {
     .filter(Boolean) as SupplyCategory[]
 }
 
-export async function getCategoryByDocumentId(documentId: string): Promise<SupplyCategory | null> {
+export async function getCategoryByDocumentId(
+  documentId: string
+): Promise<SupplyCategory | null> {
   const params = populateParams()
   params.set("filters[documentId][$eq]", documentId)
   const response = await fetchStrapi<unknown>("bssupply-categories", params)
   return normalizeCategory((getData<StrapiEntity[]>(response) || [])[0])
 }
 
-export async function getProducts(filters: ProductFilters = {}): Promise<SupplyProduct[]> {
-  const response = await fetchStrapi<unknown>("bssupply-products", productQueryParams(filters))
+export async function getProducts(
+  filters: ProductFilters = {}
+): Promise<SupplyProduct[]> {
+  const response = await fetchStrapi<unknown>(
+    "bssupply-products",
+    productQueryParams(filters)
+  )
   return (getData<StrapiEntity[]>(response) || [])
     .map(normalizeProduct)
     .filter(Boolean) as SupplyProduct[]
 }
 
-export async function getProductByDocumentId(documentId: string): Promise<SupplyProduct | null> {
+export async function getProductByDocumentId(
+  documentId: string
+): Promise<SupplyProduct | null> {
   const params = populateParams()
   params.set("filters[documentId][$eq]", documentId)
   const response = await fetchStrapi<unknown>("bssupply-products", params)

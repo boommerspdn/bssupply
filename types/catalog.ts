@@ -63,6 +63,7 @@ export interface HomePageContent {
 export interface SiteSetting {
   storeName: string
   logo?: MediaAsset | null
+  favicon?: MediaAsset | null
   phone?: string | null
   lineId?: string | null
   address?: string | null

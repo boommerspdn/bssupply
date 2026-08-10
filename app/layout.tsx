@@ -8,7 +8,11 @@ import { Navbar } from "@/components/layouts/navbar"
 import { APP_NAME } from "@/constants"
 import { seoMetadata } from "@/lib/metadata"
 import { getCategories, getSiteSettings } from "@/lib/strapi/client"
-import { JsonLd, localBusinessJsonLd, websiteJsonLd } from "@/lib/structured-data"
+import {
+  JsonLd,
+  localBusinessJsonLd,
+  websiteJsonLd,
+} from "@/lib/structured-data"
 import { cn } from "@/lib/utils"
 
 const fontSans = Noto_Sans_Thai({
@@ -26,8 +30,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return seoMetadata(setting.seo, {
     title: APP_NAME,
-    description: "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง",
-    icon: setting.logo,
+    description:
+      "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง",
+    icon: setting.favicon,
     image: setting.logo,
   })
 }
@@ -37,7 +42,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const [setting, categories] = await Promise.all([getSiteSettings(), getCategories()])
+  const [setting, categories] = await Promise.all([
+    getSiteSettings(),
+    getCategories(),
+  ])
 
   return (
     <html
