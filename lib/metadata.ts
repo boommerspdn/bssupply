@@ -7,7 +7,7 @@ const DEFAULT_DESCRIPTION =
   "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง"
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000"
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3003"
 
 function clean(value?: string | null) {
   return typeof value === "string" ? value.trim() : ""
@@ -42,6 +42,7 @@ export function seoMetadata(
   const image = fallback.image?.url
 
   return {
+    metadataBase: new URL(SITE_URL),
     title,
     description,
     ...(icon

@@ -4,12 +4,12 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3003",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
