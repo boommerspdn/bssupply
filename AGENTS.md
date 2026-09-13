@@ -17,10 +17,12 @@ The Strapi backend for this project is located at `../strapi-global`.
 
 ## API Rules
 
-- Keep Strapi fetch, normalization, fallback data, and filtering in `lib/strapi/client.ts`.
+- Keep Strapi fetch, normalization, and filtering in `lib/strapi/client.ts`.
 - Keep frontend catalog contracts in `types/catalog.ts`.
 - Populate media, category relations, product specs, featured products, favicon/logo, and SEO data when needed.
 - Use `STRAPI_API_TOKEN` only for server-side authenticated requests.
+- Match `accounting-frontend` error handling: do not add `app/error.tsx` or `app/global-error.tsx`; fail builds on Strapi network or non-2xx API failures instead of rendering fallback CMS data.
+- Match `accounting-frontend` naming for route-local UI: use `components` folders and kebab-case filenames.
 
 ## Verification
 

@@ -2,21 +2,40 @@ import { PageBreadcrumbs } from "@/components/layouts/page-breadcrumbs"
 import { ProductCard } from "@/components/product-card"
 import { EmptyState } from "@/components/ui/empty-state"
 import { seoMetadata } from "@/lib/metadata"
-import { getCategoryByDocumentId, getProducts } from "@/lib/strapi/client"
+import { getCategories, getCategoryByDocumentId, getProducts } from "@/lib/strapi/client"
+import {
+  JsonLd,
+  breadcrumbJsonLd,
+  productItemListJsonLd,
+} from "@/lib/structured-data"
 
 type CategoryPageParams = Promise<{ documentId: string }>
+
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  const categories = await getCategories()
+
+  return categories.map((category) => ({
+    documentId: category.documentId,
+  }))
+}
 
 export async function generateMetadata({ params }: { params: CategoryPageParams }) {
   const { documentId } = await params
   const category = await getCategoryByDocumentId(documentId)
 
-  return seoMetadata(null, {
-    title: category ? `${category.name} | BS Supply` : "ไม่พบหมวดหมู่ | BS Supply",
-    description:
-      category?.description ||
-      "เลือกดูสินค้าซัพพลายในหมวดหมู่จาก BS Supply พร้อมตรวจสอบสภาพและสต็อกล่าสุด",
-    image: category?.image,
-  })
+  return seoMetadata(
+    null,
+    {
+      title: category ? `${category.name} | BS Supply` : "ไม่พบหมวดหมู่ | BS Supply",
+      description:
+        category?.description ||
+        "เลือกดูสินค้าซัพพลายในหมวดหมู่จาก BS Supply พร้อมตรวจสอบสภาพและสต็อกล่าสุด",
+      image: category?.image,
+    },
+    { path: `/categories/${documentId}` }
+  )
 }
 
 export default async function CategoryPage({ params }: { params: CategoryPageParams }) {
@@ -46,6 +65,20 @@ export default async function CategoryPage({ params }: { params: CategoryPagePar
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "หน้าแรก", path: "/" },
+          { name: "สินค้าทั้งหมด", path: "/products" },
+          { name: category.name, path: `/categories/${category.documentId}` },
+        ])}
+      />
+      <JsonLd
+        data={productItemListJsonLd({
+          category,
+          products,
+          path: `/categories/${category.documentId}`,
+        })}
+      />
       <PageBreadcrumbs
         items={[
           { label: "หน้าแรก", href: "/" },

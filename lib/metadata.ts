@@ -34,12 +34,17 @@ export function seoMetadata(
     description?: string | null
     icon?: MediaAsset | null
     image?: MediaAsset | null
-  }
+  },
+  options: {
+    path?: string
+    type?: "website" | "article"
+  } = {}
 ): Metadata {
   const title = clean(seo?.title) || fallback.title
   const description = clean(seo?.description) || clean(fallback.description) || DEFAULT_DESCRIPTION
   const icon = fallback.icon?.url
   const image = fallback.image?.url
+  const canonical = siteUrl(options.path)
 
   return {
     metadataBase: new URL(SITE_URL),
@@ -54,12 +59,16 @@ export function seoMetadata(
           },
         }
       : {}),
+    alternates: {
+      canonical,
+    },
     openGraph: {
       title,
       description,
+      url: canonical,
       siteName: APP_NAME,
       locale: "th_TH",
-      type: "website",
+      type: options.type ?? "website",
       ...(image
         ? {
             images: [

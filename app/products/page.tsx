@@ -1,53 +1,44 @@
 import { PageBreadcrumbs } from "@/components/layouts/page-breadcrumbs"
-import { ProductCard } from "@/components/product-card"
-import { EmptyState } from "@/components/ui/empty-state"
 import { seoMetadata } from "@/lib/metadata"
 import { getCategories, getProducts, getSiteSettings } from "@/lib/strapi/client"
-import { isProductCondition } from "@/types/catalog"
+import {
+  JsonLd,
+  breadcrumbJsonLd,
+  productItemListJsonLd,
+} from "@/lib/structured-data"
 
-import { ProductFilters } from "./_components/ProductFilters"
-
-type ProductsSearchParams = Promise<Record<string, string | string[] | undefined>>
-
-function first(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value
-}
+import { ProductCatalog } from "./components/product-catalog"
 
 export async function generateMetadata() {
   const setting = await getSiteSettings()
 
-  return seoMetadata(null, {
-    title: "สินค้าทั้งหมด | BS Supply",
-    description:
-      "ค้นหาอุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าซัพพลายมือหนึ่งและมือสองจาก BS Supply ตามชื่อสินค้า รุ่น ยี่ห้อ หรือหมวดหมู่",
-    image: setting.logo,
-  })
+  return seoMetadata(
+    null,
+    {
+      title: "สินค้าทั้งหมด | BS Supply",
+      description:
+        "ค้นหาอุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าซัพพลายมือหนึ่งและมือสองจาก BS Supply ตามชื่อสินค้า รุ่น ยี่ห้อ หรือหมวดหมู่",
+      image: setting.logo,
+    },
+    { path: "/products" }
+  )
 }
 
-export default async function ProductsPage({
-  searchParams,
-}: {
-  searchParams: ProductsSearchParams
-}) {
-  const params = await searchParams
-  const query = first(params.q)
-  const category = first(params.category)
-  const conditionParam = first(params.condition)
-  const condition = isProductCondition(conditionParam) ? conditionParam : undefined
-  const sort = first(params.sort) as "featured" | "newest" | "price-asc" | "price-desc" | undefined
-
+export default async function ProductsPage() {
   const [categories, products] = await Promise.all([
     getCategories(),
-    getProducts({
-      query,
-      categoryDocumentId: category,
-      condition: condition || undefined,
-      sort: sort || "featured",
-    }),
+    getProducts({ pageSize: 100 }),
   ])
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "หน้าแรก", path: "/" },
+          { name: "สินค้าทั้งหมด", path: "/products" },
+        ])}
+      />
+      <JsonLd data={productItemListJsonLd({ products, path: "/products" })} />
       <PageBreadcrumbs
         items={[
           { label: "หน้าแรก", href: "/" },
@@ -61,27 +52,7 @@ export default async function ProductsPage({
           ค้นหาจากชื่อสินค้า รุ่น ยี่ห้อ หมวดหมู่ หรือข้อมูลที่เกี่ยวข้อง
         </p>
       </div>
-      <ProductFilters
-        categories={categories}
-        values={{
-          q: query,
-          category,
-          condition,
-          sort,
-        }}
-      />
-      {products.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.documentId} product={product} />
-          ))}
-        </div>
-      ) : (
-        <EmptyState
-          title="ไม่พบสินค้า"
-          description="ลองเปลี่ยนคำค้นหา หมวดหมู่ หรือส่งรายละเอียดให้ทีมงานช่วยตรวจสอบสินค้าใกล้เคียง"
-        />
-      )}
+      <ProductCatalog categories={categories} products={products} />
     </div>
   )
 }

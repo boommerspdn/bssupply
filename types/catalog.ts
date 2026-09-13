@@ -78,4 +78,5 @@ export interface ProductFilters {
   condition?: ProductCondition
   sort?: "featured" | "newest" | "price-asc" | "price-desc"
   page?: number
+  pageSize?: number
 }

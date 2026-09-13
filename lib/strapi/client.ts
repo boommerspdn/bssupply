@@ -18,37 +18,6 @@ type StrapiEntity = Record<string, unknown> & {
   attributes?: Record<string, unknown>
 }
 
-const FALLBACK_SITE_SETTING: SiteSetting = {
-  storeName: "BS Supply",
-  logo: null,
-  phone: "02-000-0000",
-  lineId: "",
-  address: "กรุงเทพฯ และพื้นที่ใกล้เคียง",
-  hours: "ติดต่อสอบถามเวลาทำการ",
-  contactNote:
-    "ส่งชื่อสินค้า รุ่น หรือรูปสินค้าที่สนใจมาให้ทีมงานตรวจสอบสต็อกได้",
-  seo: {
-    title: "BS Supply | อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าซัพพลาย",
-    description:
-      "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง",
-  },
-}
-
-const FALLBACK_HOME: HomePageContent = {
-  headline:
-    "อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าซัพพลายมือสองที่คัดมาให้ใช้งานจริง",
-  subheadline:
-    "ค้นหาสินค้าตามชื่อ รุ่น หมวดหมู่ หรือรายละเอียด แล้วติดต่อทีมงานเพื่อตรวจสอบสภาพและสต็อกล่าสุด",
-  searchPlaceholder: "ค้นหาสินค้า รุ่น ยี่ห้อ หรือหมวดหมู่",
-  heroImage: null,
-  featuredProducts: [],
-  seo: {
-    title: "BS Supply | อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าอุตสาหกรรม",
-    description:
-      "เลือกซื้ออุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าอุตสาหกรรมมือหนึ่งและมือสองจาก BS Supply พร้อมตรวจสอบสภาพและสต็อกล่าสุด",
-  },
-}
-
 function getData<T>(response: unknown): T | null {
   if (!response || typeof response !== "object") return null
   return ((response as { data?: T }).data ?? null) as T | null
@@ -172,7 +141,7 @@ function normalizeProduct(
 async function fetchStrapi<T>(
   path: string,
   params?: URLSearchParams
-): Promise<T | null> {
+): Promise<T> {
   const url = new URL(`/api/${path}`, STRAPI_URL)
   params?.forEach((value, key) => url.searchParams.set(key, value))
 
@@ -186,10 +155,15 @@ async function fetchStrapi<T>(
       headers,
       next: { revalidate: 60 },
     })
-    if (!response.ok) return null
+    if (!response.ok) {
+      throw new Error(`Strapi request failed (${response.status}): ${path}`)
+    }
+
     return (await response.json()) as T
-  } catch {
-    return null
+  } catch (error) {
+    throw error instanceof Error
+      ? error
+      : new Error(`Strapi request error: ${path}`)
   }
 }
 
@@ -231,7 +205,7 @@ function productQueryParams(filters: ProductFilters = {}) {
   })
 
   params.set("pagination[page]", String(filters.page || 1))
-  params.set("pagination[pageSize]", "24")
+  params.set("pagination[pageSize]", String(filters.pageSize || 24))
 
   return params
 }
@@ -244,7 +218,9 @@ export async function getSiteSettings(): Promise<SiteSetting> {
   const entity = getData<StrapiEntity>(response)
   const setting = fields(entity)
 
-  if (!entity) return FALLBACK_SITE_SETTING
+  if (!entity) {
+    throw new Error("Missing bssupply-site-setting data")
+  }
 
   const lineId = typeof setting.lineId === "string" ? setting.lineId.trim() : ""
 
@@ -271,22 +247,19 @@ export async function getHomePage(): Promise<HomePageContent> {
   const entity = getData<StrapiEntity>(response)
   const home = fields(entity)
 
-  if (!entity) return FALLBACK_HOME
+  if (!entity) {
+    throw new Error("Missing bssupply-home-page data")
+  }
 
   return {
-    headline:
-      typeof home.headline === "string"
-        ? home.headline
-        : FALLBACK_HOME.headline,
+    headline: typeof home.headline === "string" ? home.headline : "",
     heroImage: normalizeMedia(home.heroImage),
     subheadline:
-      typeof home.subheadline === "string"
-        ? home.subheadline
-        : FALLBACK_HOME.subheadline,
+      typeof home.subheadline === "string" ? home.subheadline : null,
     searchPlaceholder:
       typeof home.searchPlaceholder === "string"
         ? home.searchPlaceholder
-        : FALLBACK_HOME.searchPlaceholder,
+        : "ค้นหาสินค้า รุ่น ยี่ห้อ หรือหมวดหมู่",
     featuredProducts: (getData<StrapiEntity[]>(home.featuredProducts) || [])
       .map(normalizeProduct)
       .filter(Boolean) as SupplyProduct[],

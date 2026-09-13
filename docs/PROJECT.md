@@ -25,12 +25,12 @@ STRAPI_API_TOKEN=your-strapi-read-token
 ## Source Map
 
 - `app/`: App Router routes, loading states, and metadata files.
-- `app/(root)/_components`: home-only UI.
-- `app/products/_components`: product listing filters.
-- `app/products/[documentId]/_components`: product detail UI.
+- `app/(root)/components`: home-only UI.
+- `app/products/components`: product listing filters.
+- `app/products/[documentId]/components`: product detail UI.
 - `components/layouts`: navbar, footer, breadcrumbs, and layout constants.
 - `components/ui`: reusable UI primitives.
-- `lib/strapi/client.ts`: Strapi REST fetch, normalization, fallback data, and filters.
+- `lib/strapi/client.ts`: Strapi REST fetch, normalization, and filters.
 - `types/catalog.ts`: frontend catalog contracts.
 
 ## Strapi Domain
@@ -50,8 +50,8 @@ Catalog pages use `documentId` for entity lookup.
 
 - Keep CMS fetch and response normalization in `lib/strapi/client.ts`.
 - Keep category/product TypeScript contracts in `types/catalog.ts`.
-- Route-specific client controls should stay colocated in route `_components` folders.
-- Use stable empty/loading states; the Strapi client already returns fallback site/home content where appropriate.
+- Route-specific client controls should stay colocated in route `components` folders using kebab-case filenames.
+- Use stable empty/loading states for valid empty collections. Strapi network and non-2xx API failures should fail the static build.
 - Use `node_modules/next/dist/docs/` before Next 16 API changes; this repo already includes the agent warning.
 
 ## Verification

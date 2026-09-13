@@ -34,7 +34,7 @@ export function JsonLd({ data }: { data: JsonValue }) {
       type="application/ld+json"
       suppressHydrationWarning
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(stripUndefined(data)),
+        __html: JSON.stringify(stripUndefined(data)).replace(/</g, "\\u003c"),
       }}
     />
   )
@@ -134,5 +134,52 @@ export function productItemListJsonLd({
             : undefined,
       },
     })),
+  } satisfies JsonValue
+}
+
+export function categoryItemListJsonLd(categories: SupplyCategory[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    url: siteUrl("/categories"),
+    itemListElement: categories.map((category, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "CollectionPage",
+        name: category.name,
+        description: category.description,
+        url: siteUrl(`/categories/${category.documentId}`),
+        image: category.image?.url,
+      },
+    })),
+  } satisfies JsonValue
+}
+
+export function productJsonLd(product: SupplyProduct) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.summary || product.description,
+    image: product.images.map((image) => image.url),
+    brand: product.brand
+      ? {
+          "@type": "Brand",
+          name: product.brand,
+        }
+      : undefined,
+    category: product.category?.name,
+    model: product.model || undefined,
+    offers:
+      typeof product.price === "number"
+        ? {
+            "@type": "Offer",
+            priceCurrency: "THB",
+            price: product.price,
+            availability: "https://schema.org/InStock",
+            url: siteUrl(`/products/${product.documentId}`),
+          }
+        : undefined,
   } satisfies JsonValue
 }

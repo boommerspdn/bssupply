@@ -28,13 +28,17 @@ const fontMono = Geist_Mono({
 export async function generateMetadata(): Promise<Metadata> {
   const setting = await getSiteSettings()
 
-  return seoMetadata(setting.seo, {
-    title: APP_NAME,
-    description:
-      "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง",
-    icon: setting.favicon,
-    image: setting.logo,
-  })
+  return seoMetadata(
+    setting.seo,
+    {
+      title: APP_NAME,
+      description:
+        "แคตตาล็อกสินค้าซัพพลาย อุปกรณ์ไฟฟ้า และเครื่องมือสำหรับงานจริง",
+      icon: setting.favicon,
+      image: setting.logo,
+    },
+    { path: "/" }
+  )
 }
 
 export default async function RootLayout({

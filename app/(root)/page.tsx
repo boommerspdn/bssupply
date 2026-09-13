@@ -6,22 +6,26 @@ import { ReliableImage } from "@/components/reliable-image"
 import { seoMetadata } from "@/lib/metadata"
 import { getHomePage, getProducts } from "@/lib/strapi/client"
 
-import { HomeSearch } from "./_components/HomeSearch"
+import { HomeSearch } from "./components/home-search"
 
 export async function generateMetadata() {
   const home = await getHomePage()
 
-  return seoMetadata(home.seo, {
-    title: "BS Supply | อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าอุตสาหกรรม",
-    description: home.subheadline,
-    image: home.heroImage,
-  })
+  return seoMetadata(
+    home.seo,
+    {
+      title: "BS Supply | อุปกรณ์ไฟฟ้า เครื่องมือ และสินค้าอุตสาหกรรม",
+      description: home.subheadline,
+      image: home.heroImage,
+    },
+    { path: "/" }
+  )
 }
 
 export default async function HomePage() {
   const [home, fallbackProducts] = await Promise.all([
     getHomePage(),
-    getProducts({ sort: "featured" }),
+    getProducts({ sort: "featured", pageSize: 100 }),
   ])
   const featuredProducts = home.featuredProducts.length
     ? home.featuredProducts

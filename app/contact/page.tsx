@@ -6,33 +6,35 @@ import { Button } from "@/components/ui/button"
 import { getLineFriendAddUrl } from "@/lib/format"
 import { seoMetadata } from "@/lib/metadata"
 import { getSiteSettings } from "@/lib/strapi/client"
+import { JsonLd, breadcrumbJsonLd } from "@/lib/structured-data"
 
-type ContactSearchParams = Promise<Record<string, string | string[] | undefined>>
-
-function first(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value
-}
+import { ProductQueryCard } from "./components/product-query-card"
 
 export async function generateMetadata() {
   const setting = await getSiteSettings()
 
-  return seoMetadata(setting.seo, {
-    title: "ติดต่อ BS Supply | สอบถามสินค้าและสต็อกล่าสุด",
-    description: setting.contactNote,
-    image: setting.logo,
-  })
+  return seoMetadata(
+    setting.seo,
+    {
+      title: "ติดต่อ BS Supply | สอบถามสินค้าและสต็อกล่าสุด",
+      description: setting.contactNote,
+      image: setting.logo,
+    },
+    { path: "/contact" }
+  )
 }
 
-export default async function ContactPage({
-  searchParams,
-}: {
-  searchParams: ContactSearchParams
-}) {
-  const [setting, params] = await Promise.all([getSiteSettings(), searchParams])
-  const productName = first(params.product)
+export default async function ContactPage() {
+  const setting = await getSiteSettings()
 
   return (
     <div className="mx-auto grid max-w-5xl gap-8 px-4 py-10 sm:px-6 lg:px-8">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "หน้าแรก", path: "/" },
+          { name: "ติดต่อร้าน", path: "/contact" },
+        ])}
+      />
       <PageBreadcrumbs
         items={[
           { label: "หน้าแรก", href: "/" },
@@ -49,15 +51,7 @@ export default async function ContactPage({
         </p>
       </div>
 
-      {productName ? (
-        <section className="grid gap-2 rounded-lg border bg-muted/40 p-4">
-          <p className="text-sm font-medium text-muted-foreground">สินค้าที่ต้องการสอบถาม</p>
-          <p className="font-semibold">{productName}</p>
-          <p className="text-sm text-muted-foreground">
-            ส่งชื่อสินค้านี้พร้อมรุ่นหรือรูปเพิ่มเติมทาง LINE เพื่อให้ทีมงานเช็กสต็อกและสภาพล่าสุด
-          </p>
-        </section>
-      ) : null}
+      <ProductQueryCard />
 
       <div className="grid gap-4 md:grid-cols-2">
         <section className="grid gap-4 rounded-lg border bg-card p-5">

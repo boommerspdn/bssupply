@@ -3,8 +3,13 @@ import type { MetadataRoute } from "next"
 import { siteUrl } from "@/lib/metadata"
 import { getCategories, getProducts } from "@/lib/strapi/client"
 
+export const dynamic = "force-static"
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [categories, products] = await Promise.all([getCategories(), getProducts()])
+  const [categories, products] = await Promise.all([
+    getCategories(),
+    getProducts({ pageSize: 100 }),
+  ])
 
   const staticRoutes = ["/", "/products", "/categories", "/contact"]
   const categoryRoutes = categories.map(
