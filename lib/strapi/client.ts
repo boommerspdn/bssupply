@@ -11,6 +11,8 @@ const STRAPI_URL =
   process.env.STRAPI_URL ||
   process.env.NEXT_PUBLIC_STRAPI_URL ||
   "http://localhost:1337"
+const CMS_API_PREFIX =
+  process.env.CMS_API_PREFIX || process.env.NEXT_PUBLIC_CMS_API_PREFIX || "/api"
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN
 
 type StrapiEntity = Record<string, unknown> & {
@@ -142,7 +144,7 @@ async function fetchStrapi<T>(
   path: string,
   params?: URLSearchParams
 ): Promise<T> {
-  const url = new URL(`/api/${path}`, STRAPI_URL)
+  const url = new URL(`${CMS_API_PREFIX}/${path}`, STRAPI_URL)
   params?.forEach((value, key) => url.searchParams.set(key, value))
 
   try {

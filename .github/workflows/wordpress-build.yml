@@ -1,0 +1,27 @@
+name: WordPress CMS Build
+
+on:
+  repository_dispatch:
+    types: [bssupply_content_changed]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_STRAPI_URL: ${{ vars.WORDPRESS_CMS_URL }}
+      STRAPI_URL: ${{ vars.WORDPRESS_CMS_URL }}
+      NEXT_PUBLIC_CMS_API_PREFIX: /wp-json/strapi-compat/v1
+      CMS_API_PREFIX: /wp-json/strapi-compat/v1
+      STRAPI_API_TOKEN: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build

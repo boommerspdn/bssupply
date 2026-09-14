@@ -7,7 +7,10 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   images: {
     unoptimized: true,
-    remotePatterns: [new URL(`${strapiUrl}/uploads/**`)],
+    remotePatterns: [
+      new URL(`${strapiUrl}/uploads/**`),
+      new URL(`${strapiUrl}/wp-content/uploads/**`),
+    ],
   },
   allowedDevOrigins: ["192.168.1.13"],
 }
