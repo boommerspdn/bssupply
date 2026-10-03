@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useQueryClient } from "@tanstack/react-query"
 
 import { ProductPrice } from "@/components/product-price"
 
@@ -9,30 +8,14 @@ import { ImagePlaceholder } from "@/components/image-placeholder"
 import { ReliableImage } from "@/components/reliable-image"
 import { Badge } from "@/components/ui/badge"
 import { getConditionLabel, getProductPreviewDescription } from "@/lib/format"
-import { PRODUCT_QUERY_GC_TIME, PRODUCT_QUERY_STALE_TIME } from "@/lib/query-cache"
-import { cmsKeys } from "@/lib/query-keys"
-import { getProductByDocumentId } from "@/lib/strapi/client"
 import type { SupplyProduct } from "@/types/catalog"
 
 export function ProductCard({ product }: { product: SupplyProduct }) {
-  const queryClient = useQueryClient()
   const image = product.images[0]
-  const prefetchProduct = () => {
-    void queryClient.prefetchQuery({
-      queryKey: cmsKeys.product(product.documentId),
-      queryFn: () => getProductByDocumentId(product.documentId),
-      staleTime: PRODUCT_QUERY_STALE_TIME,
-      gcTime: PRODUCT_QUERY_GC_TIME,
-    })
-  }
   return (
     <article className="group h-full overflow-hidden rounded-lg border bg-card transition-all hover:border-primary/40 hover:shadow-md focus-within:border-primary/40">
       <Link
         href={`/products/${product.documentId}`}
-        onFocus={prefetchProduct}
-        onMouseEnter={prefetchProduct}
-        onPointerDown={prefetchProduct}
-        onTouchStart={prefetchProduct}
         className="grid h-full cursor-pointer grid-rows-[auto_1fr] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
         <div className="aspect-[4/3] bg-muted">
