@@ -16,10 +16,10 @@ export function ProductCard({ product }: { product: SupplyProduct }) {
           {image ? <ReliableImage src={image.url} alt={image.alternativeText || product.name}
             className="size-full object-contain transition-transform group-hover:scale-[1.02]" /> : <ImagePlaceholder />}
         </div>
-        <div className="grid min-w-0 grid-rows-[auto_auto_auto] gap-3 p-4">
+        <div className="flex min-w-0 flex-col gap-2.5 p-4">
           <div className="grid min-w-0 gap-1">
-            <h3 className="line-clamp-2 h-12 min-w-0 text-sm font-semibold leading-6 group-hover:text-primary">{product.name}</h3>
-            <ProductPrice product={product} className="min-h-12 text-sm" />
+            <h3 className="line-clamp-2 h-10 min-w-0 text-sm font-semibold leading-5 group-hover:text-primary">{product.name}</h3>
+            <ProductPrice product={product} className="text-sm" />
           </div>
           <div className="flex h-7 min-w-0 flex-wrap gap-2 overflow-hidden">
             {product.condition ? <Badge tone="muted">{getConditionLabel(product.condition)}</Badge> : null}
