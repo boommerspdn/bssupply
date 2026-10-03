@@ -173,9 +173,7 @@ async function fetchStrapi<T>(
 
     const response = await fetch(
       url,
-      typeof window === "undefined"
-        ? { headers, signal, next: { revalidate: 60 } }
-        : { headers, signal, cache: "no-store" }
+      { headers, signal, cache: "no-store" }
     )
     if (!response.ok) {
       throw new Error(`Strapi request failed (${response.status}): ${path}`)

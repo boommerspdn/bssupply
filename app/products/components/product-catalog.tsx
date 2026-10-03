@@ -11,16 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { cmsKeys } from "@/lib/query-keys"
 import { getCategories, getProductPage } from "@/lib/strapi/client"
-import { isProductCondition, type ProductFilters as CatalogFilters } from "@/types/catalog"
-
-import { CATALOG_PAGE_SIZE } from "../products.constants"
+import { parseCatalogFilters } from "../products.filters"
 import { ProductFilters } from "./product-filters"
 import { ProductCatalogSkeleton } from "./product-catalog-skeleton"
 import { ProductPagination } from "./product-pagination"
-
-function first(value: string | null) {
-  return value?.trim() || undefined
-}
 
 function subscribeToLocation(callback: () => void) {
   window.addEventListener("popstate", callback)
@@ -40,27 +34,16 @@ function updateLocation(params: URLSearchParams, replace = false) {
   window.dispatchEvent(new PopStateEvent("popstate", { state: window.history.state }))
 }
 
-export function ProductCatalog() {
+export function ProductCatalog({ initialSearch = "" }: { initialSearch?: string }) {
   const isCatalogRoute = usePathname().replace(/\/$/, "") === "/products"
   const locationSearch = useSyncExternalStore(
     subscribeToLocation,
     () => isCatalogRoute ? getLocationSearch() : "",
-    () => null
+    () => initialSearch
   )
   const searchParams = useMemo(() => new URLSearchParams(locationSearch ?? ""), [locationSearch])
-  const query = first(searchParams.get("q"))
-  const category = first(searchParams.get("category"))
-  const conditionParam = first(searchParams.get("condition"))
-  const condition = isProductCondition(conditionParam) ? conditionParam : undefined
-  const sortParam = first(searchParams.get("sort"))
-  const sort = sortParam === "newest" || sortParam === "price-asc" || sortParam === "price-desc"
-    ? sortParam : "featured"
-  const pageParam = searchParams.get("page") ?? "1"
-  const pageNumber = Number(pageParam)
-  const page = /^\d+$/.test(pageParam) && Number.isSafeInteger(pageNumber) && pageNumber > 0 ? pageNumber : 1
-  const filters: CatalogFilters = {
-    query, categoryDocumentId: category, condition, sort, page, pageSize: CATALOG_PAGE_SIZE,
-  }
+  const filters = parseCatalogFilters(searchParams)
+  const { query, categoryDocumentId: category, condition, sort, page } = filters
   const {
     data: categories, isError: categoriesError, refetch: refetchCategories,
   } = useQuery({ queryKey: cmsKeys.categories, queryFn: getCategories })
@@ -119,7 +102,7 @@ export function ProductCatalog() {
               </div>
             ) : <EmptyState title="ไม่พบสินค้า" description="ลองเปลี่ยนคำค้นหา หมวดหมู่ หรือส่งรายละเอียดให้ทีมงานช่วยตรวจสอบสินค้าใกล้เคียง" />}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
-              <p className="text-sm text-muted-foreground">{data.pagination.total ? `แสดง ${(page - 1) * CATALOG_PAGE_SIZE + 1}–${(page - 1) * CATALOG_PAGE_SIZE + data.products.length} จาก ${data.pagination.total} รายการ` : "0 รายการ"}</p>
+              <p className="text-sm text-muted-foreground">{data.pagination.total ? `แสดง ${(page - 1) * filters.pageSize + 1}–${(page - 1) * filters.pageSize + data.products.length} จาก ${data.pagination.total} รายการ` : "0 รายการ"}</p>
               <ProductPagination page={page} pageCount={data.pagination.pageCount} search={locationSearch ?? ""} />
             </div>
           </>

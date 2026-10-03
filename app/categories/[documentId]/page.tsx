@@ -1,21 +1,16 @@
+import { notFound } from "next/navigation"
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 
 import { seoMetadata } from "@/lib/metadata"
 import { cmsKeys } from "@/lib/query-keys"
-import { getCategories, getCategoryByDocumentId, getProducts } from "@/lib/strapi/client"
+import { getCategoryByDocumentId, getProducts } from "@/lib/strapi/client"
 import { CategoryContent } from "./components/category-content"
 
 type CategoryPageParams = Promise<{ documentId: string }>
-export const dynamicParams = false
-
-export async function generateStaticParams() {
-  const categories = await getCategories()
-  return categories.map(({ documentId }) => ({ documentId }))
-}
-
 export async function generateMetadata({ params }: { params: CategoryPageParams }) {
   const { documentId } = await params
   const category = await getCategoryByDocumentId(documentId)
+  if (!category) notFound()
   return seoMetadata(null, {
     title: category ? `${category.name} | BS Supply` : "ไม่พบหมวดหมู่ | BS Supply",
     description: category?.description || "เลือกดูสินค้าซัพพลายในหมวดหมู่จาก BS Supply พร้อมตรวจสอบสภาพและสต็อกล่าสุด",
@@ -30,5 +25,6 @@ export default async function CategoryPage({ params }: { params: CategoryPagePar
     queryClient.fetchQuery({ queryKey: cmsKeys.category(documentId), queryFn: () => getCategoryByDocumentId(documentId) }),
     queryClient.fetchQuery({ queryKey: cmsKeys.products({ categoryDocumentId: documentId }), queryFn: () => getProducts({ categoryDocumentId: documentId }) }),
   ])
+  if (!queryClient.getQueryData(cmsKeys.category(documentId))) notFound()
   return <HydrationBoundary state={dehydrate(queryClient)}><CategoryContent documentId={documentId} /></HydrationBoundary>
 }

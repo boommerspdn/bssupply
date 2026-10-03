@@ -11,6 +11,8 @@ import { getCategories, getSiteSettings } from "@/lib/strapi/client"
 import { cmsKeys } from "@/lib/query-keys"
 import { cn } from "@/lib/utils"
 
+export const dynamic = "force-dynamic"
+
 const fontSans = Noto_Sans_Thai({
   subsets: ["thai", "latin"],
   variable: "--font-sans",

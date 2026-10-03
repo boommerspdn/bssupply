@@ -22,7 +22,7 @@ npm run dev
 ```
 
 The app runs at `http://localhost:3003` and consumes the `bssupply-*` Strapi API domain.
-TanStack Query prefetches content into the static export and refreshes it in the browser without a loading state. `NEXT_PUBLIC_API_TOKEN` is visible to visitors, so use a read-only token with only the necessary CMS permissions. New product and category URLs require a rebuild.
+CMS-backed pages render on request using the Next.js standalone Node server; Strapi reads use `no-store`. Newly published products and categories work without rebuilding. TanStack Query hydrates request-time data and handles browser search/filter caching and loading states. `NEXT_PUBLIC_API_TOKEN` is visible to visitors, so use a read-only token with only the necessary CMS permissions.
 
 ## Adding components
 
@@ -44,6 +44,6 @@ import { Button } from "@/components/ui/button";
 
 ## Project Documentation
 
-- [Deployment guide](docs/DEPLOYMENT.md) covers production builds, local checks, SSH upload, backups, and rollback.
+- [Deployment guide](docs/DEPLOYMENT.md) covers standalone builds, local runtime checks, PM2, reverse-proxy deployment, backups, and rollback.
 - `docs/PROJECT.md` describes this frontend's source layout, Strapi domain, and verification workflow.
 - `../strapi-global/docs/domains/bssupply.md` documents the BS Supply CMS endpoints.

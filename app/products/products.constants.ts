@@ -1,7 +1,7 @@
 export const CATALOG_PAGE_SIZE = 20
 
 export const INITIAL_CATALOG_FILTERS = {
-  sort: "featured",
+  sort: "newest",
   page: 1,
   pageSize: CATALOG_PAGE_SIZE,
 } as const
@@ -15,7 +15,6 @@ export const CONDITION_OPTIONS = [
 ]
 
 export const SORT_OPTIONS = [
-  { value: "featured", label: "แนะนำก่อน" },
   { value: "newest", label: "ล่าสุด" },
   { value: "price-asc", label: "ราคาต่ำไปสูง" },
   { value: "price-desc", label: "ราคาสูงไปต่ำ" },

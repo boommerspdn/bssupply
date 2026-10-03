@@ -118,7 +118,7 @@ export function ProductFilters({
       <div className="flex gap-2">
         <FilterSelect
           name="sort"
-          defaultValue={values.sort || "featured"}
+          defaultValue={values.sort || "newest"}
           options={SORT_OPTIONS}
           className="min-w-0 flex-1"
         />

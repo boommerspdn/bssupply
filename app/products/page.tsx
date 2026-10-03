@@ -3,7 +3,7 @@ import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query
 import { seoMetadata } from "@/lib/metadata"
 import { cmsKeys } from "@/lib/query-keys"
 import { getCategories, getProductPage, getSiteSettings } from "@/lib/strapi/client"
-import { INITIAL_CATALOG_FILTERS } from "./products.constants"
+import { parseCatalogFilters } from "./products.filters"
 import {
   JsonLd,
   breadcrumbJsonLd,
@@ -27,13 +27,19 @@ export async function generateMetadata() {
   )
 }
 
-export default async function ProductsPage() {
+export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(await searchParams)) {
+    const first = Array.isArray(value) ? value[0] : value
+    if (first !== undefined) params.set(key, first)
+  }
+  const filters = parseCatalogFilters(params)
   const queryClient = new QueryClient()
   const [, products] = await Promise.all([
     queryClient.fetchQuery({ queryKey: cmsKeys.categories, queryFn: getCategories }),
     queryClient.fetchQuery({
-      queryKey: cmsKeys.productPage(INITIAL_CATALOG_FILTERS),
-      queryFn: () => getProductPage(INITIAL_CATALOG_FILTERS),
+      queryKey: cmsKeys.productPage(filters),
+      queryFn: () => getProductPage(filters),
     }),
   ])
 
@@ -60,7 +66,7 @@ export default async function ProductsPage() {
           ค้นหาจากชื่อสินค้า รุ่น ยี่ห้อ หมวดหมู่ หรือข้อมูลที่เกี่ยวข้อง
         </p>
       </div>
-      <ProductCatalog />
+      <ProductCatalog initialSearch={params.size ? `?${params}` : ""} />
     </div>
     </HydrationBoundary>
   )

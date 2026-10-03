@@ -1,8 +1,7 @@
 Options -MultiViews
-DirectoryIndex index.html
+DirectoryIndex disabled
 RewriteEngine On
 RewriteBase /
-ErrorDocument 404 /404/
 
 # A trailing slash on a route payload is never a page or a valid payload URL.
 RewriteRule ^(.*/)?index\.txt/$ /$1 [R=302,L]
@@ -12,16 +11,12 @@ RewriteRule ^(.*/)?index\.txt/$ /$1 [R=302,L]
 RewriteCond %{HTTP:Sec-Fetch-Dest} =document
 RewriteRule ^(.*/)?index\.txt$ /$1 [R=302,L]
 
-# Serve exported assets, including Next.js link-prefetch payloads, as files.
+# Hardcoded assets and ACME challenges remain files. CMS pages always use Next.
 RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
+RewriteRule ^(?:_next/static/|\.well-known/|.*\.(?:png|jpe?g|gif|webp|svg|ico|woff2?|css|js)$) - [L]
 
-# Next.js uses trailing slashes for exported page routes.
-RewriteCond %{REQUEST_URI} !/$
-RewriteRule ^(.+)$ $1/ [R=301,L]
+# The hosting front proxy may forward its legacy directory index path.
+RewriteRule ^(.*/)?index\.html$ http://127.0.0.1:4103/$1 [P,L]
 
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteCond %{REQUEST_FILENAME}/index.html -f
-RewriteRule ^(.+)$ $1/index.html [L]
-
-AddType application/xml .xml
+# PM2 standalone runtime; do not serve the old exported index.html files.
+RewriteRule ^(.*)$ http://127.0.0.1:4103/$1 [P,L]

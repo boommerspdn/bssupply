@@ -4,6 +4,8 @@
 
 @theme inline {
   --color-light-green: var(--light-green);
+  --color-sale-green: #028D3B;
+  --color-discount-highlight: #D6F542;
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
   --color-ring: var(--ring);

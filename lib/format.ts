@@ -1,13 +1,11 @@
-import { DEFAULT_CURRENCY, DEFAULT_LOCALE } from "@/constants"
+import { DEFAULT_LOCALE } from "@/constants"
 import type { ProductCondition } from "@/types/catalog"
 
 export function formatPrice(price?: number | null, priceText?: string | null) {
   if (typeof price === "number") {
-    return new Intl.NumberFormat(DEFAULT_LOCALE, {
-      style: "currency",
-      currency: DEFAULT_CURRENCY,
+    return `${new Intl.NumberFormat(DEFAULT_LOCALE, {
       maximumFractionDigits: 0,
-    }).format(price)
+    }).format(price)}฿`
   }
 
   return priceText || "สอบถามราคา"
