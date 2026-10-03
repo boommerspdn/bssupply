@@ -101,14 +101,14 @@ export function ProductSearchInput({ defaultValue = "", className, categoryDocum
               <li key={product.documentId} role="presentation">
                 <Link id={`${listId}-${index}`} href={`/products/${product.documentId}/`} prefetch={false}
                   role="option" aria-selected={index === activeIndex} tabIndex={-1}
-                  className={cn("flex cursor-pointer items-center gap-3 rounded-md p-3 hover:bg-accent focus:bg-accent", index === activeIndex && "bg-accent")}
+                  className={cn("group flex cursor-pointer items-center gap-3 rounded-md p-3 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground", index === activeIndex && "bg-accent text-accent-foreground")}
                   onMouseEnter={() => setActiveIndex(index)} onClick={() => setOpen(false)}>
                   <span className="size-12 shrink-0 overflow-hidden rounded-md bg-muted">
                     {product.image ? <ReliableImage src={product.image.url} alt={product.image.alternativeText || product.name} className="size-full object-contain" /> : <ImagePlaceholder className="[&_svg]:size-5" />}
                   </span>
                   <span className="grid min-w-0 gap-1">
                     <span className="line-clamp-1 text-sm font-medium">{product.name}</span>
-                    <span className="line-clamp-2 text-xs text-muted-foreground">{previewText(product.description) || "ดูรายละเอียดสินค้า"}</span>
+                    <span className="line-clamp-2 text-xs text-muted-foreground group-hover:text-accent-foreground group-focus:text-accent-foreground group-aria-selected:text-accent-foreground">{previewText(product.description) || "ดูรายละเอียดสินค้า"}</span>
                   </span>
                 </Link>
               </li>

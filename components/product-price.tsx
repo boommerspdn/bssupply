@@ -6,7 +6,7 @@ export function ProductPrice({ product, className }: { product: SupplyProduct; c
   const discount = getProductDiscount(product)
   return (
     <div className={cn("font-semibold", className)}>
-      <p className={discount ? "text-green-500" : "text-black"}>
+      <p className="text-primary">
         {formatPrice(discount?.price ?? product.price, product.priceText)}
       </p>
       {discount && (
