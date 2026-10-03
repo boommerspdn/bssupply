@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 
 import { seoMetadata } from "@/lib/metadata"
+import { PRODUCT_QUERY_GC_TIME, PRODUCT_QUERY_STALE_TIME } from "@/lib/query-cache"
 import { cmsKeys } from "@/lib/query-keys"
 import { getCategoryByDocumentId, getProducts } from "@/lib/strapi/client"
 import { CategoryContent } from "./components/category-content"
@@ -23,7 +24,12 @@ export default async function CategoryPage({ params }: { params: CategoryPagePar
   const queryClient = new QueryClient()
   await Promise.all([
     queryClient.fetchQuery({ queryKey: cmsKeys.category(documentId), queryFn: () => getCategoryByDocumentId(documentId) }),
-    queryClient.fetchQuery({ queryKey: cmsKeys.products({ categoryDocumentId: documentId }), queryFn: () => getProducts({ categoryDocumentId: documentId }) }),
+    queryClient.fetchQuery({
+      queryKey: cmsKeys.products({ categoryDocumentId: documentId }),
+      queryFn: () => getProducts({ categoryDocumentId: documentId }),
+      staleTime: PRODUCT_QUERY_STALE_TIME,
+      gcTime: PRODUCT_QUERY_GC_TIME,
+    }),
   ])
   if (!queryClient.getQueryData(cmsKeys.category(documentId))) notFound()
   return <HydrationBoundary state={dehydrate(queryClient)}><CategoryContent documentId={documentId} /></HydrationBoundary>

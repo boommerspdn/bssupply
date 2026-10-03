@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query"
 import { PageBreadcrumbs } from "@/components/layouts/page-breadcrumbs"
 import { ProductCard } from "@/components/product-card"
 import { EmptyState } from "@/components/ui/empty-state"
+import { PRODUCT_QUERY_GC_TIME, PRODUCT_QUERY_STALE_TIME } from "@/lib/query-cache"
 import { cmsKeys } from "@/lib/query-keys"
 import { getCategoryByDocumentId, getProducts } from "@/lib/strapi/client"
 import {
@@ -22,6 +23,8 @@ export function CategoryContent({ documentId }: { documentId: string }) {
   const { data: products, isError: productsError, refetch: refetchProducts } = useQuery({
     queryKey: cmsKeys.products({ categoryDocumentId: documentId }),
     queryFn: () => getProducts({ categoryDocumentId: documentId }),
+    staleTime: PRODUCT_QUERY_STALE_TIME,
+    gcTime: PRODUCT_QUERY_GC_TIME,
   })
   const errorNotice = categoryError || productsError ? <CmsQueryError hasData={category !== undefined && products !== undefined} retry={() => { void refetchCategory(); void refetchProducts() }} /> : null
   if (category === undefined || !products) return errorNotice

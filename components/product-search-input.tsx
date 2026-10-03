@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { ReliableImage } from "@/components/reliable-image"
 import { ImagePlaceholder } from "@/components/image-placeholder"
 import { Spinner } from "@/components/ui/spinner"
+import { PRODUCT_QUERY_GC_TIME, PRODUCT_QUERY_STALE_TIME } from "@/lib/query-cache"
 import { cmsKeys } from "@/lib/query-keys"
 import { getProductSuggestions } from "@/lib/strapi/client"
 import { cn } from "@/lib/utils"
@@ -53,8 +54,8 @@ export function ProductSearchInput({ defaultValue = "", className, categoryDocum
     queryKey: cmsKeys.productSuggestions(filters),
     queryFn: ({ signal }) => getProductSuggestions(filters, signal),
     enabled: visible && query === debouncedQuery,
-    staleTime: 5 * 60_000,
-    gcTime: 30 * 60_000,
+    staleTime: PRODUCT_QUERY_STALE_TIME,
+    gcTime: PRODUCT_QUERY_GC_TIME,
     refetchOnWindowFocus: false,
   })
   const waiting = query !== debouncedQuery || isPending

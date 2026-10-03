@@ -9,6 +9,7 @@ import { ProductCard } from "@/components/product-card"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
+import { PRODUCT_QUERY_GC_TIME, PRODUCT_QUERY_STALE_TIME } from "@/lib/query-cache"
 import { cmsKeys } from "@/lib/query-keys"
 import { getCategories, getProductPage } from "@/lib/strapi/client"
 import { parseCatalogFilters } from "../products.filters"
@@ -53,8 +54,8 @@ export function ProductCatalog({ initialSearch = "" }: { initialSearch?: string 
     queryKey: cmsKeys.productPage(filters),
     queryFn: ({ signal }) => getProductPage(filters, signal),
     enabled: locationSearch !== null && isCatalogRoute,
-    staleTime: 60_000,
-    gcTime: 15 * 60_000,
+    staleTime: PRODUCT_QUERY_STALE_TIME,
+    gcTime: PRODUCT_QUERY_GC_TIME,
   })
   const [hasLoaded, setHasLoaded] = useState(false)
   if (!hasLoaded && data && locationSearch !== null) setHasLoaded(true)

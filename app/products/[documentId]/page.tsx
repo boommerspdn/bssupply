@@ -1,9 +1,7 @@
 import { notFound } from "next/navigation"
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 
 import { seoMetadata } from "@/lib/metadata"
-import { cmsKeys } from "@/lib/query-keys"
-import { getProductByDocumentId, getSiteSettings } from "@/lib/strapi/client"
+import { getProductByDocumentId } from "@/lib/strapi/client"
 import { ProductContent } from "./components/product-content"
 
 type ProductPageParams = Promise<{ documentId: string }>
@@ -20,11 +18,5 @@ export async function generateMetadata({ params }: { params: ProductPageParams }
 
 export default async function ProductPage({ params }: { params: ProductPageParams }) {
   const { documentId } = await params
-  const queryClient = new QueryClient()
-  await Promise.all([
-    queryClient.fetchQuery({ queryKey: cmsKeys.product(documentId), queryFn: () => getProductByDocumentId(documentId) }),
-    queryClient.fetchQuery({ queryKey: cmsKeys.setting, queryFn: getSiteSettings }),
-  ])
-  if (!queryClient.getQueryData(cmsKeys.product(documentId))) notFound()
-  return <HydrationBoundary state={dehydrate(queryClient)}><ProductContent documentId={documentId} /></HydrationBoundary>
+  return <ProductContent documentId={documentId} />
 }

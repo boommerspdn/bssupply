@@ -1,0 +1,2 @@
+export const PRODUCT_QUERY_STALE_TIME = 5 * 60_000
+export const PRODUCT_QUERY_GC_TIME = 30 * 60_000

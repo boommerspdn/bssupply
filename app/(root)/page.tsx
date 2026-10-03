@@ -1,6 +1,7 @@
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 
 import { seoMetadata } from "@/lib/metadata"
+import { PRODUCT_QUERY_GC_TIME, PRODUCT_QUERY_STALE_TIME } from "@/lib/query-cache"
 import { cmsKeys } from "@/lib/query-keys"
 import { getHomePage, getProducts } from "@/lib/strapi/client"
 import { HomeContent } from "./components/home-content"
@@ -21,6 +22,8 @@ export default async function HomePage() {
     queryClient.fetchQuery({
       queryKey: cmsKeys.products({ sort: "featured", pageSize: 8 }),
       queryFn: () => getProducts({ sort: "featured", pageSize: 8 }),
+      staleTime: PRODUCT_QUERY_STALE_TIME,
+      gcTime: PRODUCT_QUERY_GC_TIME,
     }),
   ])
   return <HydrationBoundary state={dehydrate(queryClient)}><HomeContent /></HydrationBoundary>

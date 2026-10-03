@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query"
 import { ImagePlaceholder } from "@/components/image-placeholder"
 import { ProductCard } from "@/components/product-card"
 import { ReliableImage } from "@/components/reliable-image"
+import { PRODUCT_QUERY_GC_TIME, PRODUCT_QUERY_STALE_TIME } from "@/lib/query-cache"
 import { cmsKeys } from "@/lib/query-keys"
 import { getHomePage, getProducts } from "@/lib/strapi/client"
 
@@ -16,6 +17,8 @@ export function HomeContent() {
   const { data: fallbackProducts } = useQuery({
     queryKey: cmsKeys.products({ sort: "featured", pageSize: 8 }),
     queryFn: () => getProducts({ sort: "featured", pageSize: 8 }),
+    staleTime: PRODUCT_QUERY_STALE_TIME,
+    gcTime: PRODUCT_QUERY_GC_TIME,
   })
   if (!home || !fallbackProducts) return null
   const featuredProducts = home.featuredProducts.length

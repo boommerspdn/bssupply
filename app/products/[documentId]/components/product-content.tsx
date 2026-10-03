@@ -8,20 +8,29 @@ import { PageBreadcrumbs } from "@/components/layouts/page-breadcrumbs"
 import { Badge } from "@/components/ui/badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { getConditionLabel, getProductPreviewDescription } from "@/lib/format"
+import { PRODUCT_QUERY_GC_TIME, PRODUCT_QUERY_STALE_TIME } from "@/lib/query-cache"
 import { cmsKeys } from "@/lib/query-keys"
 import { getProductByDocumentId, getSiteSettings } from "@/lib/strapi/client"
 import { JsonLd, breadcrumbJsonLd, productJsonLd } from "@/lib/structured-data"
 
 import { ContactPanel } from "./contact-panel"
+import { ProductDetailSkeleton } from "./product-detail-skeleton"
 import { ProductGallery } from "./product-gallery"
 
 export function ProductContent({ documentId }: { documentId: string }) {
   const { data: product } = useQuery({
     queryKey: cmsKeys.product(documentId),
     queryFn: () => getProductByDocumentId(documentId),
+    staleTime: PRODUCT_QUERY_STALE_TIME,
+    gcTime: PRODUCT_QUERY_GC_TIME,
   })
-  const { data: setting } = useQuery({ queryKey: cmsKeys.setting, queryFn: getSiteSettings })
-  if (product === undefined || !setting) return null
+  const { data: setting } = useQuery({
+    queryKey: cmsKeys.setting,
+    queryFn: getSiteSettings,
+    staleTime: PRODUCT_QUERY_STALE_TIME,
+    gcTime: PRODUCT_QUERY_GC_TIME,
+  })
+  if (product === undefined || !setting) return <ProductDetailSkeleton />
 
   if (!product) {
     return (

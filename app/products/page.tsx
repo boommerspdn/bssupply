@@ -1,6 +1,7 @@
 import { PageBreadcrumbs } from "@/components/layouts/page-breadcrumbs"
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 import { seoMetadata } from "@/lib/metadata"
+import { PRODUCT_QUERY_GC_TIME, PRODUCT_QUERY_STALE_TIME } from "@/lib/query-cache"
 import { cmsKeys } from "@/lib/query-keys"
 import { getCategories, getProductPage, getSiteSettings } from "@/lib/strapi/client"
 import { parseCatalogFilters } from "./products.filters"
@@ -40,6 +41,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     queryClient.fetchQuery({
       queryKey: cmsKeys.productPage(filters),
       queryFn: () => getProductPage(filters),
+      staleTime: PRODUCT_QUERY_STALE_TIME,
+      gcTime: PRODUCT_QUERY_GC_TIME,
     }),
   ])
 
