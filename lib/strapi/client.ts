@@ -1,19 +1,25 @@
 import type {
   HomePageContent,
   ProductFilters,
+  ProductPage,
+  ProductSuggestion,
   SiteSetting,
   SupplyCategory,
   SupplyProduct,
 } from "@/types/catalog"
 import { isProductCondition } from "@/types/catalog"
+import { getProductPreviewDescription } from "@/lib/format"
 
 const STRAPI_URL =
-  process.env.STRAPI_URL ||
   process.env.NEXT_PUBLIC_STRAPI_URL ||
+  process.env.STRAPI_URL ||
   "http://localhost:1337"
 const CMS_API_PREFIX =
-  process.env.CMS_API_PREFIX || process.env.NEXT_PUBLIC_CMS_API_PREFIX || "/api"
-const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN
+  process.env.NEXT_PUBLIC_CMS_API_PREFIX || process.env.CMS_API_PREFIX || "/api"
+const STRAPI_API_TOKEN =
+  typeof window === "undefined"
+    ? process.env.STRAPI_API_TOKEN || process.env.NEXT_PUBLIC_API_TOKEN
+    : process.env.NEXT_PUBLIC_API_TOKEN
 
 type StrapiEntity = Record<string, unknown> & {
   documentId?: string
@@ -34,7 +40,14 @@ function fields(entity: StrapiEntity | null | undefined) {
 
 function mediaUrl(url?: unknown) {
   if (typeof url !== "string" || !url) return null
-  return url.startsWith("http") ? url : `${STRAPI_URL}${url}`
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    const parsed = new URL(url)
+    if (parsed.pathname.startsWith("/uploads/") && ["localhost", "127.0.0.1"].includes(parsed.hostname)) {
+      return `${STRAPI_URL}${parsed.pathname}${parsed.search}`
+    }
+    return url
+  }
+  return `${STRAPI_URL}${url}`
 }
 
 function normalizeMedia(value: unknown) {
@@ -109,12 +122,16 @@ function normalizeProduct(
     description:
       typeof product.description === "string" ? product.description : null,
     images: normalizeMediaList(product.images),
-    category: normalizeCategory(getData<StrapiEntity>(product.category)),
+    category: normalizeCategory(
+      getData<StrapiEntity>(product.category) ??
+        (product.category as StrapiEntity | null)
+    ),
     condition: isProductCondition(product.condition) ? product.condition : null,
     brand: typeof product.brand === "string" ? product.brand : null,
     model: typeof product.model === "string" ? product.model : null,
     price: typeof product.price === "number" ? product.price : null,
-    priceNote: typeof product.priceNote === "string" ? product.priceNote : null,
+    priceText: typeof product.priceText === "string" ? product.priceText : null,
+    priceAfterDiscount: typeof product.priceAfterDiscount === "number" ? product.priceAfterDiscount : null,
     locationNote:
       typeof product.locationNote === "string" ? product.locationNote : null,
     tags: Array.isArray(product.tags)
@@ -142,7 +159,8 @@ function normalizeProduct(
 
 async function fetchStrapi<T>(
   path: string,
-  params?: URLSearchParams
+  params?: URLSearchParams,
+  signal?: AbortSignal
 ): Promise<T> {
   const url = new URL(`${CMS_API_PREFIX}/${path}`, STRAPI_URL)
   params?.forEach((value, key) => url.searchParams.set(key, value))
@@ -153,10 +171,12 @@ async function fetchStrapi<T>(
       headers.Authorization = `Bearer ${STRAPI_API_TOKEN}`
     }
 
-    const response = await fetch(url, {
-      headers,
-      next: { revalidate: 60 },
-    })
+    const response = await fetch(
+      url,
+      typeof window === "undefined"
+        ? { headers, signal, next: { revalidate: 60 } }
+        : { headers, signal, cache: "no-store" }
+    )
     if (!response.ok) {
       throw new Error(`Strapi request failed (${response.status}): ${path}`)
     }
@@ -185,6 +205,11 @@ function productQueryParams(filters: ProductFilters = {}) {
     params.set("filters[$or][2][brand][$containsi]", query)
     params.set("filters[$or][3][model][$containsi]", query)
     params.set("filters[$or][4][locationNote][$containsi]", query)
+    params.set("filters[$or][5][description][$containsi]", query)
+    params.set("filters[$or][6][category][name][$containsi]", query)
+    params.set("filters[$or][7][tags][$containsi]", query)
+    params.set("filters[$or][8][specs][label][$containsi]", query)
+    params.set("filters[$or][9][specs][value][$containsi]", query)
   }
 
   if (filters.categoryDocumentId) {
@@ -205,6 +230,8 @@ function productQueryParams(filters: ProductFilters = {}) {
   sortMap[filters.sort || "featured"].forEach((sort, index) => {
     params.set(`sort[${index}]`, sort)
   })
+  // A unique tie-breaker keeps equally priced/dated products stable across pages.
+  params.set(`sort[${sortMap[filters.sort || "featured"].length}]`, "documentId:asc")
 
   params.set("pagination[page]", String(filters.page || 1))
   params.set("pagination[pageSize]", String(filters.pageSize || 24))
@@ -300,6 +327,36 @@ export async function getProducts(
     .filter(Boolean) as SupplyProduct[]
 }
 
+export async function getProductPage(
+  filters: ProductFilters,
+  signal?: AbortSignal
+): Promise<ProductPage> {
+  const params = productQueryParams(filters)
+  params.delete("populate")
+  // Cards need images and the category identity, not every spec or media field.
+  params.set("populate[images][fields][0]", "url")
+  params.set("populate[images][fields][1]", "alternativeText")
+  params.set("populate[category][fields][0]", "name")
+  ;["name", "summary", "description", "price", "priceText", "priceAfterDiscount", "condition", "locationNote", "featured", "publishedAt"].forEach((field, index) => {
+    params.set(`fields[${index}]`, field)
+  })
+  params.set("pagination[withCount]", "true")
+  const response = await fetchStrapi<{
+    data: StrapiEntity[]
+    meta: { pagination: ProductPage["pagination"] }
+  }>("bssupply-products", params, signal)
+  const pagination = response.meta?.pagination
+  if (!Array.isArray(response.data) || !pagination ||
+    ![pagination.page, pagination.pageSize, pagination.pageCount, pagination.total].every(Number.isSafeInteger) ||
+    pagination.page < 1 || pagination.pageSize < 1 || pagination.pageCount < 0 || pagination.total < 0) {
+    throw new Error("Invalid bssupply-products pagination response")
+  }
+  return {
+    products: response.data.map(normalizeProduct).filter((product): product is SupplyProduct => product !== null),
+    pagination,
+  }
+}
+
 export async function getProductByDocumentId(
   documentId: string
 ): Promise<SupplyProduct | null> {
@@ -307,4 +364,67 @@ export async function getProductByDocumentId(
   params.set("filters[documentId][$eq]", documentId)
   const response = await fetchStrapi<unknown>("bssupply-products", params)
   return normalizeProduct((getData<StrapiEntity[]>(response) || [])[0])
+}
+
+export async function getProductSuggestions(
+  filters: ProductFilters,
+  signal?: AbortSignal
+): Promise<ProductSuggestion[]> {
+  if (!filters.query || filters.query.trim().length < 2) return []
+  const params = productQueryParams({ ...filters, page: 1, pageSize: 6 })
+  params.delete("populate")
+  params.set("pagination[withCount]", "false")
+  ;["name", "summary", "description"].forEach((field, index) => params.set(`fields[${index}]`, field))
+  ;["url", "alternativeText", "formats"].forEach((field, index) => params.set(`populate[images][fields][${index}]`, field))
+  const response = await fetchStrapi<{ data: StrapiEntity[] }>("bssupply-products", params, signal)
+  if (!Array.isArray(response.data)) throw new Error("Invalid product suggestions response")
+  return response.data.map((entity) => {
+    const product = fields(entity)
+    if (typeof product.documentId !== "string" || typeof product.name !== "string") {
+      throw new Error("Invalid product suggestion")
+    }
+    const images = getData<StrapiEntity[]>(product.images) ?? (Array.isArray(product.images) ? product.images : [])
+    const firstImage = fields(images[0])
+    const formats = firstImage.formats as Record<string, StrapiEntity> | undefined
+    const image = normalizeMedia(formats?.thumbnail ?? images[0])
+    return {
+      documentId: product.documentId,
+      name: product.name,
+      description: getProductPreviewDescription({
+        summary: typeof product.summary === "string" ? product.summary : null,
+        description: typeof product.description === "string" ? product.description : null,
+      }),
+      image: image ? { ...image, alternativeText: typeof firstImage.alternativeText === "string" ? firstImage.alternativeText : null } : null,
+    }
+  })
+}
+
+// Build-time route discovery must traverse the collection, even past 100 items.
+export async function getAllProductDocumentIds(): Promise<string[]> {
+  const ids: string[] = []
+  let page = 1
+  let pageCount = 1
+  do {
+    const params = new URLSearchParams({
+      "fields[0]": "name",
+      "sort[0]": "documentId:asc",
+      "pagination[page]": String(page),
+      "pagination[pageSize]": "100",
+      "pagination[withCount]": "true",
+    })
+    const response = await fetchStrapi<{
+      data: StrapiEntity[]
+      meta: { pagination: { pageCount: number } }
+    }>("bssupply-products", params)
+    if (!Array.isArray(response.data) || !Number.isSafeInteger(response.meta?.pagination?.pageCount)) {
+      throw new Error("Invalid bssupply-products route discovery response")
+    }
+    for (const product of response.data) {
+      if (typeof product.documentId !== "string") throw new Error("Missing product documentId")
+      ids.push(product.documentId)
+    }
+    pageCount = response.meta.pagination.pageCount
+    page += 1
+  } while (page <= pageCount)
+  return ids
 }

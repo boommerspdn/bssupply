@@ -1,4 +1,4 @@
-export const PRODUCT_CONDITIONS = ["new", "used", "for_parts"] as const
+export const PRODUCT_CONDITIONS = ["new", "used", "for_parts", "rent"] as const
 
 export type ProductCondition = (typeof PRODUCT_CONDITIONS)[number]
 
@@ -43,7 +43,8 @@ export interface SupplyProduct {
   brand?: string | null
   model?: string | null
   price?: number | null
-  priceNote?: string | null
+  priceText?: string | null
+  priceAfterDiscount?: number | null
   locationNote?: string | null
   tags: string[]
   specs: ProductSpec[]
@@ -79,4 +80,21 @@ export interface ProductFilters {
   sort?: "featured" | "newest" | "price-asc" | "price-desc"
   page?: number
   pageSize?: number
+}
+
+export interface ProductPage {
+  products: SupplyProduct[]
+  pagination: {
+    page: number
+    pageSize: number
+    pageCount: number
+    total: number
+  }
+}
+
+export interface ProductSuggestion {
+  documentId: string
+  name: string
+  description: string
+  image: MediaAsset | null
 }

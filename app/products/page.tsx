@@ -1,6 +1,9 @@
 import { PageBreadcrumbs } from "@/components/layouts/page-breadcrumbs"
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query"
 import { seoMetadata } from "@/lib/metadata"
-import { getCategories, getProducts, getSiteSettings } from "@/lib/strapi/client"
+import { cmsKeys } from "@/lib/query-keys"
+import { getCategories, getProductPage, getSiteSettings } from "@/lib/strapi/client"
+import { INITIAL_CATALOG_FILTERS } from "./products.constants"
 import {
   JsonLd,
   breadcrumbJsonLd,
@@ -25,12 +28,17 @@ export async function generateMetadata() {
 }
 
 export default async function ProductsPage() {
-  const [categories, products] = await Promise.all([
-    getCategories(),
-    getProducts({ pageSize: 100 }),
+  const queryClient = new QueryClient()
+  const [, products] = await Promise.all([
+    queryClient.fetchQuery({ queryKey: cmsKeys.categories, queryFn: getCategories }),
+    queryClient.fetchQuery({
+      queryKey: cmsKeys.productPage(INITIAL_CATALOG_FILTERS),
+      queryFn: () => getProductPage(INITIAL_CATALOG_FILTERS),
+    }),
   ])
 
   return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
     <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
       <JsonLd
         data={breadcrumbJsonLd([
@@ -38,7 +46,7 @@ export default async function ProductsPage() {
           { name: "สินค้าทั้งหมด", path: "/products" },
         ])}
       />
-      <JsonLd data={productItemListJsonLd({ products, path: "/products" })} />
+      <JsonLd data={productItemListJsonLd({ products: products.products, path: "/products" })} />
       <PageBreadcrumbs
         items={[
           { label: "หน้าแรก", href: "/" },
@@ -52,7 +60,8 @@ export default async function ProductsPage() {
           ค้นหาจากชื่อสินค้า รุ่น ยี่ห้อ หมวดหมู่ หรือข้อมูลที่เกี่ยวข้อง
         </p>
       </div>
-      <ProductCatalog categories={categories} products={products} />
+      <ProductCatalog />
     </div>
+    </HydrationBoundary>
   )
 }

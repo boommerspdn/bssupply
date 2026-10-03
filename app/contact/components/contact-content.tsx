@@ -1,0 +1,115 @@
+"use client"
+
+import type { ReactNode } from "react"
+import { MapPin, PackageCheck, Truck } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
+
+import { PageBreadcrumbs } from "@/components/layouts/page-breadcrumbs"
+import { ContactActions } from "@/components/contact-actions"
+import { cmsKeys } from "@/lib/query-keys"
+import { getSiteSettings } from "@/lib/strapi/client"
+import { JsonLd, breadcrumbJsonLd } from "@/lib/structured-data"
+
+import { ProductQueryCard } from "./product-query-card"
+
+export function ContactContent() {
+  const { data: setting } = useQuery({ queryKey: cmsKeys.setting, queryFn: getSiteSettings })
+  if (!setting) return null
+
+  return (
+    <div className="mx-auto grid max-w-5xl gap-8 px-4 py-10 sm:px-6 lg:px-8">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "หน้าแรก", path: "/" },
+          { name: "ติดต่อร้าน", path: "/contact" },
+        ])}
+      />
+      <PageBreadcrumbs
+        items={[
+          { label: "หน้าแรก", href: "/" },
+          { label: "ติดต่อร้าน" },
+        ]}
+      />
+
+      <div className="grid gap-3">
+        <p className="text-sm font-medium text-primary">ติดต่อร้าน</p>
+        <h1 className="text-3xl font-semibold">สอบถามสินค้าและสต็อกล่าสุด</h1>
+        <p className="max-w-2xl text-muted-foreground">
+          {setting.contactNote ||
+            "แจ้งชื่อสินค้า รุ่น หรือส่งรูปสินค้าที่ต้องการ ทีมงานจะช่วยตรวจสอบสินค้าใกล้เคียงให้"}
+        </p>
+      </div>
+
+      <ProductQueryCard />
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-4 rounded-lg border bg-card p-5">
+          <h2 className="text-lg font-semibold">ช่องทางติดต่อ</h2>
+          <p className="text-sm text-muted-foreground">
+            ส่งรูปสินค้าเก่า ป้ายรุ่น หรือสเปกที่ต้องการได้เลย ทีมงานจะช่วยเทียบสินค้าใกล้เคียงให้
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <ContactActions setting={setting} />
+          </div>
+        </section>
+
+        <section className="grid gap-3 rounded-lg border bg-card p-5 text-sm">
+          <h2 className="text-lg font-semibold">ข้อมูลร้าน</h2>
+          <InfoRow label="ชื่อร้าน" value={setting.storeName} />
+          {setting.address ? <InfoRow label="ที่อยู่" value={setting.address} /> : null}
+          {setting.hours ? <InfoRow label="เวลา" value={setting.hours} /> : null}
+        </section>
+      </div>
+
+      <section className="grid gap-4 rounded-lg border bg-card p-5">
+        <h2 className="text-lg font-semibold">รับสินค้าและจัดส่ง</h2>
+        <div className="grid gap-4 text-sm md:grid-cols-3">
+          <InfoCard
+            icon={<MapPin aria-hidden="true" />}
+            title="พื้นที่ให้บริการ"
+            description={setting.address || "กรุงเทพฯ และพื้นที่ใกล้เคียง"}
+          />
+          <InfoCard
+            icon={<PackageCheck aria-hidden="true" />}
+            title="เช็กก่อนนัดรับ"
+            description="กรุณาสอบถามสต็อกและสภาพสินค้าล่าสุดก่อนเข้ารับหรือโอนชำระ"
+          />
+          <InfoCard
+            icon={<Truck aria-hidden="true" />}
+            title="จัดส่ง"
+            description="รองรับนัดรับหน้าร้านหรือจัดส่งตามตกลง โดยขึ้นอยู่กับขนาดและน้ำหนักสินค้า"
+          />
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid gap-1 border-b py-2 last:border-0 sm:grid-cols-[100px_1fr]">
+      <div className="text-muted-foreground">{label}</div>
+      <div className="font-medium">{value}</div>
+    </div>
+  )
+}
+
+function InfoCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode
+  title: string
+  description: string
+}) {
+  return (
+    <div className="grid gap-2 rounded-md bg-muted/40 p-4">
+      <div className="flex items-center gap-2 font-medium">
+        <span className="text-primary [&_svg]:size-4">{icon}</span>
+        {title}
+      </div>
+      <p className="text-muted-foreground">{description}</p>
+    </div>
+  )
+}

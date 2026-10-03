@@ -1,18 +1,22 @@
 "use client"
 
-import { useMemo, useSyncExternalStore } from "react"
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react"
+import { usePathname } from "next/navigation"
+import { useQuery } from "@tanstack/react-query"
 
+import { CmsQueryError } from "@/components/cms-query-error"
 import { ProductCard } from "@/components/product-card"
 import { EmptyState } from "@/components/ui/empty-state"
-import {
-  isProductCondition,
-  type SupplyCategory,
-  type SupplyProduct,
-} from "@/types/catalog"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
+import { cmsKeys } from "@/lib/query-keys"
+import { getCategories, getProductPage } from "@/lib/strapi/client"
+import { isProductCondition, type ProductFilters as CatalogFilters } from "@/types/catalog"
 
+import { CATALOG_PAGE_SIZE } from "../products.constants"
 import { ProductFilters } from "./product-filters"
-
-type ProductSort = "featured" | "newest" | "price-asc" | "price-desc"
+import { ProductCatalogSkeleton } from "./product-catalog-skeleton"
+import { ProductPagination } from "./product-pagination"
 
 function first(value: string | null) {
   return value?.trim() || undefined
@@ -27,108 +31,100 @@ function getLocationSearch() {
   return typeof window === "undefined" ? "" : window.location.search
 }
 
-function includesQuery(product: SupplyProduct, query: string) {
-  const haystack = [
-    product.name,
-    product.summary,
-    product.description,
-    product.brand,
-    product.model,
-    product.locationNote,
-    product.category?.name,
-    ...product.tags,
-    ...product.specs.flatMap((spec) => [spec.label, spec.value]),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLocaleLowerCase()
-
-  return haystack.includes(query.toLocaleLowerCase())
+function updateLocation(params: URLSearchParams, replace = false) {
+  const nextSearch = params.size ? `?${params}` : ""
+  if (nextSearch === window.location.search) return
+  window.history[replace ? "replaceState" : "pushState"](
+    null, "", `${window.location.pathname}${nextSearch}${window.location.hash}`
+  )
+  window.dispatchEvent(new PopStateEvent("popstate", { state: window.history.state }))
 }
 
-function sortProducts(products: SupplyProduct[], sort: ProductSort) {
-  return [...products].sort((a, b) => {
-    if (sort === "newest") {
-      return (b.publishedAt || "").localeCompare(a.publishedAt || "")
-    }
-
-    if (sort === "price-asc" || sort === "price-desc") {
-      const missingPrice =
-        sort === "price-asc" ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
-      const aPrice =
-        typeof a.price === "number" ? a.price : missingPrice
-      const bPrice =
-        typeof b.price === "number" ? b.price : missingPrice
-      return sort === "price-asc" ? aPrice - bPrice : bPrice - aPrice
-    }
-
-    if (a.featured !== b.featured) return a.featured ? -1 : 1
-    return (b.publishedAt || "").localeCompare(a.publishedAt || "")
-  })
-}
-
-export function ProductCatalog({
-  categories,
-  products,
-}: {
-  categories: SupplyCategory[]
-  products: SupplyProduct[]
-}) {
+export function ProductCatalog() {
+  const isCatalogRoute = usePathname().replace(/\/$/, "") === "/products"
   const locationSearch = useSyncExternalStore(
     subscribeToLocation,
-    getLocationSearch,
-    () => ""
+    () => isCatalogRoute ? getLocationSearch() : "",
+    () => null
   )
-  const searchParams = useMemo(
-    () => new URLSearchParams(locationSearch),
-    [locationSearch]
-  )
+  const searchParams = useMemo(() => new URLSearchParams(locationSearch ?? ""), [locationSearch])
   const query = first(searchParams.get("q"))
   const category = first(searchParams.get("category"))
   const conditionParam = first(searchParams.get("condition"))
   const condition = isProductCondition(conditionParam) ? conditionParam : undefined
   const sortParam = first(searchParams.get("sort"))
-  const sort: ProductSort =
-    sortParam === "newest" ||
-    sortParam === "price-asc" ||
-    sortParam === "price-desc"
-      ? sortParam
-      : "featured"
+  const sort = sortParam === "newest" || sortParam === "price-asc" || sortParam === "price-desc"
+    ? sortParam : "featured"
+  const pageParam = searchParams.get("page") ?? "1"
+  const pageNumber = Number(pageParam)
+  const page = /^\d+$/.test(pageParam) && Number.isSafeInteger(pageNumber) && pageNumber > 0 ? pageNumber : 1
+  const filters: CatalogFilters = {
+    query, categoryDocumentId: category, condition, sort, page, pageSize: CATALOG_PAGE_SIZE,
+  }
+  const {
+    data: categories, isError: categoriesError, refetch: refetchCategories,
+  } = useQuery({ queryKey: cmsKeys.categories, queryFn: getCategories })
+  const {
+    data, isError: productsError, isFetching, refetch: refetchProducts,
+  } = useQuery({
+    queryKey: cmsKeys.productPage(filters),
+    queryFn: ({ signal }) => getProductPage(filters, signal),
+    enabled: locationSearch !== null && isCatalogRoute,
+    staleTime: 60_000,
+    gcTime: 15 * 60_000,
+  })
+  const [hasLoaded, setHasLoaded] = useState(false)
+  if (!hasLoaded && data && locationSearch !== null) setHasLoaded(true)
+  // A collection may shrink between requests. Recover to its last valid page.
+  useEffect(() => {
+    if (!data || isFetching || !isCatalogRoute || locationSearch === null) return
+    const lastPage = Math.max(1, data.pagination.pageCount)
+    if (page > lastPage) {
+      const params = new URLSearchParams(locationSearch)
+      if (lastPage === 1) params.delete("page")
+      else params.set("page", String(lastPage))
+      updateLocation(params, true)
+    }
+  }, [data, isFetching, isCatalogRoute, locationSearch, page])
 
-  const filteredProducts = useMemo(() => {
-    const filtered = products.filter((product) => {
-      if (query && !includesQuery(product, query)) return false
-      if (category && product.category?.documentId !== category) return false
-      if (condition && product.condition !== condition) return false
-      return true
-    })
-
-    return sortProducts(filtered, sort)
-  }, [category, condition, products, query, sort])
-
+  const loading = locationSearch === null || (!data && !productsError)
+  const errorNotice = categoriesError || productsError ? (
+    <CmsQueryError hasData={categories !== undefined && data !== undefined}
+      retry={() => { void refetchCategories(); void refetchProducts() }} />
+  ) : null
   return (
     <>
-      <ProductFilters
-        categories={categories}
-        values={{
-          q: query,
-          category,
-          condition,
-          sort,
-        }}
-      />
-      {filteredProducts.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.documentId} product={product} />
-          ))}
-        </div>
-      ) : (
-        <EmptyState
-          title="ไม่พบสินค้า"
-          description="ลองเปลี่ยนคำค้นหา หมวดหมู่ หรือส่งรายละเอียดให้ทีมงานช่วยตรวจสอบสินค้าใกล้เคียง"
-        />
-      )}
+      {errorNotice}
+      {categories ? (
+        <ProductFilters key={locationSearch ?? "hydrating"} categories={categories}
+          isLoading={loading && hasLoaded}
+          onApply={(params) => {
+            params.delete("page")
+            if (params.toString() === new URLSearchParams(window.location.search).toString()) {
+              void refetchProducts()
+            } else updateLocation(params)
+          }}
+          values={{ q: query, category, condition, sort }} />
+      ) : !categoriesError ? <Skeleton className="h-20 w-full" aria-label="กำลังโหลดตัวกรอง" /> : null}
+      <section aria-label="ผลการค้นหาสินค้า" aria-busy={loading || isFetching} className="grid gap-5">
+        {loading ? hasLoaded ? (
+          <div role="status" className="flex min-h-60 items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Spinner aria-hidden="true" /> กำลังค้นหาสินค้า
+          </div>
+        ) : <ProductCatalogSkeleton /> : data ? (
+          <>
+            {data.products.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {data.products.map((product) => <ProductCard key={product.documentId} product={product} />)}
+              </div>
+            ) : <EmptyState title="ไม่พบสินค้า" description="ลองเปลี่ยนคำค้นหา หมวดหมู่ หรือส่งรายละเอียดให้ทีมงานช่วยตรวจสอบสินค้าใกล้เคียง" />}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
+              <p className="text-sm text-muted-foreground">{data.pagination.total ? `แสดง ${(page - 1) * CATALOG_PAGE_SIZE + 1}–${(page - 1) * CATALOG_PAGE_SIZE + data.products.length} จาก ${data.pagination.total} รายการ` : "0 รายการ"}</p>
+              <ProductPagination page={page} pageCount={data.pagination.pageCount} search={locationSearch ?? ""} />
+            </div>
+          </>
+        ) : null}
+      </section>
     </>
   )
 }

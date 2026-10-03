@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { ProductSearchInput } from "@/components/product-search-input"
+import { cn } from "@/lib/utils"
 import {
   Select,
   SelectContent,
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { SupplyCategory } from "@/types/catalog"
+import { isProductCondition, type SupplyCategory } from "@/types/catalog"
 
 import { CONDITION_OPTIONS, SORT_OPTIONS } from "../products.constants"
 
@@ -36,24 +36,30 @@ function FilterSelect({
   defaultValue,
   options,
   className,
+  onChange,
 }: {
   name: string
   defaultValue: string | undefined
   options: FilterOption[]
   className?: string
+  onChange?: (value: string) => void
 }) {
   const [value, setValue] = useState(toSelectValue(defaultValue))
 
   return (
     <>
       <input type="hidden" name={name} value={fromSelectValue(value)} />
-      <Select value={value} onValueChange={setValue}>
-        <SelectTrigger className={className}>
+      <Select value={value} onValueChange={(nextValue) => { setValue(nextValue); onChange?.(fromSelectValue(nextValue)) }}>
+        <SelectTrigger className={cn("cursor-pointer", className)}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (
-            <SelectItem key={option.value || "all"} value={toSelectValue(option.value)}>
+            <SelectItem
+              key={option.value || "all"}
+              value={toSelectValue(option.value)}
+              className="cursor-pointer"
+            >
               {option.label}
             </SelectItem>
           ))}
@@ -66,27 +72,35 @@ function FilterSelect({
 export function ProductFilters({
   categories,
   values,
+  onApply,
+  isLoading,
 }: {
   categories: SupplyCategory[]
   values: Record<string, string | undefined>
+  onApply: (params: URLSearchParams) => void
+  isLoading: boolean
 }) {
+  const [category, setCategory] = useState(values.category)
+  const [condition, setCondition] = useState(values.condition)
   return (
-    <form className="grid gap-3 rounded-lg border bg-card p-4 md:grid-cols-[1fr_180px_160px_auto]">
-      <div className="relative">
-        <Search
-          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <Input
-          name="q"
-          defaultValue={values.q}
-          placeholder="ค้นหาชื่อสินค้า รุ่น ยี่ห้อ"
-          className="pl-9"
-        />
-      </div>
+    <form
+      className="grid gap-3 rounded-lg border bg-card p-4 md:grid-cols-[1fr_180px_160px_auto]"
+      onSubmit={(event) => {
+        event.preventDefault()
+        const params = new URLSearchParams()
+        new FormData(event.currentTarget).forEach((value, name) => {
+          if (typeof value === "string" && value.trim())
+            params.set(name, value.trim())
+        })
+        onApply(params)
+      }}
+    >
+      <ProductSearchInput defaultValue={values.q}
+        categoryDocumentId={category} condition={isProductCondition(condition) ? condition : undefined} />
       <FilterSelect
         name="category"
         defaultValue={values.category}
+        onChange={setCategory}
         options={[
           { value: "", label: "ทุกหมวดหมู่" },
           ...categories.map((category) => ({
@@ -98,6 +112,7 @@ export function ProductFilters({
       <FilterSelect
         name="condition"
         defaultValue={values.condition}
+        onChange={setCondition}
         options={CONDITION_OPTIONS}
       />
       <div className="flex gap-2">
@@ -107,7 +122,7 @@ export function ProductFilters({
           options={SORT_OPTIONS}
           className="min-w-0 flex-1"
         />
-        <Button type="submit" className="h-10">
+        <Button type="submit" className="h-10 cursor-pointer" disabled={isLoading}>
           ค้นหา
         </Button>
       </div>

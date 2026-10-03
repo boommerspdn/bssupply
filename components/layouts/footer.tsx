@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { navigateCatalogLink } from "@/lib/catalog-navigation"
 import { Clock, MapPin, Phone } from "lucide-react"
 
 import type { SiteSetting } from "@/types/catalog"
@@ -83,7 +86,7 @@ export function Footer({ setting }: { setting: SiteSetting }) {
 
         <div className="mt-8 flex flex-col gap-3 border-t pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <span>© {currentYear} {storeName}. All rights reserved.</span>
-          <Link href="/products" className="font-medium text-foreground hover:underline">
+          <Link href="/products" onClick={navigateCatalogLink} className="font-medium text-foreground hover:underline">
             ดูสินค้าทั้งหมด
           </Link>
         </div>

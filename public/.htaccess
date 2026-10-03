@@ -1,0 +1,27 @@
+Options -MultiViews
+DirectoryIndex index.html
+RewriteEngine On
+RewriteBase /
+ErrorDocument 404 /404/
+
+# A trailing slash on a route payload is never a page or a valid payload URL.
+RewriteRule ^(.*/)?index\.txt/$ /$1 [R=302,L]
+
+# Browser visits to payload files should open the HTML page. Keep fetch requests
+# untouched: Next.js needs index.txt for client navigation.
+RewriteCond %{HTTP:Sec-Fetch-Dest} =document
+RewriteRule ^(.*/)?index\.txt$ /$1 [R=302,L]
+
+# Serve exported assets, including Next.js link-prefetch payloads, as files.
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Next.js uses trailing slashes for exported page routes.
+RewriteCond %{REQUEST_URI} !/$
+RewriteRule ^(.+)$ $1/ [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}/index.html -f
+RewriteRule ^(.+)$ $1/index.html [L]
+
+AddType application/xml .xml

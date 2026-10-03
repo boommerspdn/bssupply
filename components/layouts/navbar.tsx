@@ -1,8 +1,11 @@
 "use client"
 
+import { categoryHref } from "@/lib/category-link"
+import { navigateCatalogLink } from "@/lib/catalog-navigation"
+
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronDown, Menu, Phone, X } from "lucide-react"
+import { ChevronDown, Menu, X } from "lucide-react"
 
 import { APP_NAME } from "@/constants"
 import type { SiteSetting, SupplyCategory } from "@/types/catalog"
@@ -16,7 +19,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { getLineFriendAddUrl } from "@/lib/format"
+import { ContactActions } from "@/components/contact-actions"
 import { cn } from "@/lib/utils"
 
 import { NAV_LINKS } from "./navbar.constants"
@@ -66,51 +69,64 @@ export function Navbar({
               <div
                 key={link.href}
                 className="relative"
+                onMouseEnter={() => setIsCategoryOpen(true)}
+                onMouseLeave={() => setIsCategoryOpen(false)}
+                onFocus={() => setIsCategoryOpen(true)}
                 onBlur={(event) => {
                   if (!event.currentTarget.contains(event.relatedTarget)) {
                     setIsCategoryOpen(false)
                   }
                 }}
               >
-                <button
-                  type="button"
-                  aria-haspopup="true"
-                  aria-expanded={isCategoryOpen}
-                  aria-controls="desktop-category-menu"
-                  className={cn(
-                    buttonVariants({ variant: "ghost" }),
-                    "gap-1.5"
-                  )}
-                  onClick={() => setIsCategoryOpen((isOpen) => !isOpen)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Escape") {
-                      setIsCategoryOpen(false)
-                    }
-                  }}
-                >
-                  {link.label}
-                  <ChevronDown className="size-4" aria-hidden="true" />
-                </button>
+                  <Link
+                    href={link.href}
+                    className={cn(buttonVariants({ variant: "ghost" }), "cursor-pointer gap-1.5")}
+                    aria-haspopup="true"
+                    aria-expanded={isCategoryOpen}
+                    aria-controls="desktop-category-menu"
+                    onClick={(event) => {
+                      navigateCatalogLink(event)
+                      closeMenus()
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape") {
+                        setIsCategoryOpen(false)
+                      } else if (event.key === "ArrowDown") {
+                        event.preventDefault()
+                        setIsCategoryOpen(true)
+                        document.querySelector<HTMLAnchorElement>("#desktop-category-menu a")?.focus()
+                      }
+                    }}
+                  >
+                    {link.label}
+                    <ChevronDown className="size-4" aria-hidden="true" />
+                  </Link>
                 <div
                   id="desktop-category-menu"
                   className={cn(
-                    "invisible absolute top-full left-0 z-40 w-72 translate-y-2 rounded-lg border bg-popover p-2 opacity-0 shadow-sm transition-all",
-                    isCategoryOpen && "visible translate-y-1 opacity-100"
+                    "invisible absolute top-full left-0 z-40 w-72 rounded-lg border bg-popover p-2 opacity-0 shadow-sm transition-opacity",
+                    isCategoryOpen && "visible opacity-100"
                   )}
                 >
                   <Link
                     href={link.href}
                     className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
-                    onClick={() => setIsCategoryOpen(false)}
+                    onClick={(event) => {
+                      navigateCatalogLink(event)
+                      closeMenus()
+                    }}
                   >
                     ดูสินค้าทั้งหมด
                   </Link>
                   {categories.map((category) => (
                     <Link
                       key={category.documentId}
-                      href={`/categories/${category.documentId}`}
+                      href={categoryHref(category.documentId)}
                       className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                      onClick={() => setIsCategoryOpen(false)}
+                      onClick={(event) => {
+                        navigateCatalogLink(event)
+                        closeMenus()
+                      }}
                     >
                       {category.name}
                     </Link>
@@ -130,35 +146,7 @@ export function Navbar({
         </nav>
 
         <div className="flex items-center gap-2">
-          {setting.phone ? (
-            <Button asChild variant="outline" className="hidden sm:inline-flex">
-              <a href={`tel:${setting.phone}`}>
-                <Phone aria-hidden="true" />
-                {setting.phone}
-              </a>
-            </Button>
-          ) : null}
-          {setting.lineId ? (
-            <Button asChild className="hidden sm:inline-flex">
-              <a
-                href={getLineFriendAddUrl(setting.lineId)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <img
-                  src="/line-official-icon.png"
-                  alt=""
-                  className="size-5"
-                  aria-hidden="true"
-                />
-                {setting.lineId}
-              </a>
-            </Button>
-          ) : (
-            <Button asChild className="hidden sm:inline-flex">
-              <Link href="/contact">สอบถามสินค้า</Link>
-            </Button>
-          )}
+          <ContactActions setting={setting} className="hidden sm:inline-flex" />
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
@@ -190,6 +178,10 @@ export function Navbar({
                   <SheetClose key={link.href} asChild>
                     <Link
                       href={link.href}
+                      onClick={(event) => {
+                        navigateCatalogLink(event)
+                        closeMenus()
+                      }}
                       className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
                     >
                       {link.label}
@@ -204,7 +196,11 @@ export function Navbar({
                     {categories.map((category) => (
                       <SheetClose key={category.documentId} asChild>
                         <Link
-                          href={`/categories/${category.documentId}`}
+                          href={categoryHref(category.documentId)}
+                          onClick={(event) => {
+                            navigateCatalogLink(event)
+                            closeMenus()
+                          }}
                           className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
                         >
                           {category.name}

@@ -1,3 +1,4 @@
+import { getEffectivePrice } from "@/lib/format"
 import { APP_NAME } from "@/constants"
 import { siteUrl } from "@/lib/metadata"
 import type { SiteSetting, SupplyCategory, SupplyProduct } from "@/types/catalog"
@@ -124,11 +125,11 @@ export function productItemListJsonLd({
         category: category?.name,
         image: product.images?.[0]?.url,
         offers:
-          typeof product.price === "number"
+          typeof getEffectivePrice(product) === "number"
             ? {
                 "@type": "Offer",
                 priceCurrency: "THB",
-                price: product.price,
+                price: getEffectivePrice(product),
                 availability: "https://schema.org/InStock",
               }
             : undefined,
@@ -172,11 +173,11 @@ export function productJsonLd(product: SupplyProduct) {
     category: product.category?.name,
     model: product.model || undefined,
     offers:
-      typeof product.price === "number"
+      typeof getEffectivePrice(product) === "number"
         ? {
             "@type": "Offer",
             priceCurrency: "THB",
-            price: product.price,
+            price: getEffectivePrice(product),
             availability: "https://schema.org/InStock",
             url: siteUrl(`/products/${product.documentId}`),
           }
