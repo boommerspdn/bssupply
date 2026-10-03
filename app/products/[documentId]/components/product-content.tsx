@@ -68,7 +68,7 @@ export function ProductContent({ documentId }: { documentId: string }) {
         ])}
       />
       <JsonLd data={productJsonLd(product)} />
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid gap-6">
         <PageBreadcrumbs
           items={[
@@ -102,6 +102,7 @@ export function ProductContent({ documentId }: { documentId: string }) {
             {product.summary ? (
               <p className="leading-7 text-muted-foreground">{getProductPreviewDescription(product)}</p>
             ) : null}
+            <ContactPanel product={product} setting={setting} />
           </div>
         </section>
 
@@ -125,9 +126,6 @@ export function ProductContent({ documentId }: { documentId: string }) {
         </section>
       </div>
 
-      <aside className="lg:sticky lg:top-24 lg:self-start">
-        <ContactPanel product={product} setting={setting} />
-      </aside>
       </div>
     </>
   )
