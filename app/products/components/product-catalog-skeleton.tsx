@@ -7,7 +7,7 @@ export function ProductCatalogSkeleton() {
       <span className="sr-only">กำลังโหลดสินค้า</span>
       {Array.from({ length: CATALOG_PAGE_SIZE }, (_, index) => (
         <div key={index} aria-hidden="true" className="overflow-hidden rounded-lg border bg-card">
-          <Skeleton className="h-48 rounded-none sm:h-52 lg:h-56" />
+          <Skeleton className="aspect-[4/3] rounded-none" />
           <div className="grid gap-3 p-4">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-5 w-24" />

@@ -12,7 +12,7 @@ export function ProductCard({ product }: { product: SupplyProduct }) {
   return (
     <article className="group h-full overflow-hidden rounded-lg border bg-card transition-all hover:border-primary/40 hover:shadow-md focus-within:border-primary/40">
       <Link href={`/products/${product.documentId}`} className="grid h-full cursor-pointer grid-rows-[auto_1fr] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
-        <div className="h-48 bg-muted sm:h-52 lg:h-56">
+        <div className="aspect-[4/3] bg-muted">
           {image ? <ReliableImage src={image.url} alt={image.alternativeText || product.name}
             className="size-full object-contain transition-transform group-hover:scale-[1.02]" /> : <ImagePlaceholder />}
         </div>
