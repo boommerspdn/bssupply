@@ -3,7 +3,7 @@ import { CATALOG_PAGE_SIZE } from "../products.constants"
 
 export function ProductCatalogSkeleton() {
   return (
-    <div role="status" aria-label="กำลังโหลดสินค้า" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div role="status" aria-label="กำลังโหลดสินค้า" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <span className="sr-only">กำลังโหลดสินค้า</span>
       {Array.from({ length: CATALOG_PAGE_SIZE }, (_, index) => (
         <div key={index} aria-hidden="true" className="overflow-hidden rounded-lg border bg-card">

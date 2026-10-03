@@ -97,7 +97,7 @@ export function ProductCatalog({ initialSearch = "" }: { initialSearch?: string 
         ) : <ProductCatalogSkeleton /> : data ? (
           <>
             {data.products.length ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {data.products.map((product) => <ProductCard key={product.documentId} product={product} />)}
               </div>
             ) : <EmptyState title="ไม่พบสินค้า" description="ลองเปลี่ยนคำค้นหา หมวดหมู่ หรือส่งรายละเอียดให้ทีมงานช่วยตรวจสอบสินค้าใกล้เคียง" />}
