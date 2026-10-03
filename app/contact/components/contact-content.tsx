@@ -17,7 +17,7 @@ export function ContactContent() {
   if (!setting) return null
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-8 px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:px-8">
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "หน้าแรก", path: "/" },
