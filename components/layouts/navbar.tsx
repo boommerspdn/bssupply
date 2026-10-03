@@ -110,7 +110,7 @@ export function Navbar({
                 >
                   <Link
                     href={link.href}
-                    className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+                    className="block rounded-md px-3 py-2 text-sm font-medium hover:text-accent-foreground hover:bg-accent focus-visible:bg-accent focus-visible:text-accent-foreground"
                     onClick={(event) => {
                       navigateCatalogLink(event)
                       closeMenus()
@@ -122,7 +122,7 @@ export function Navbar({
                     <Link
                       key={category.documentId}
                       href={categoryHref(category.documentId)}
-                      className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                      className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent focus-visible:bg-accent focus-visible:text-accent-foreground hover:text-accent-foreground"
                       onClick={(event) => {
                         navigateCatalogLink(event)
                         closeMenus()
@@ -182,7 +182,7 @@ export function Navbar({
                         navigateCatalogLink(event)
                         closeMenus()
                       }}
-                      className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+                      className="rounded-md px-3 py-2 text-sm font-medium hover:text-accent-foreground hover:bg-accent focus-visible:bg-accent focus-visible:text-accent-foreground"
                     >
                       {link.label}
                     </Link>
@@ -201,7 +201,7 @@ export function Navbar({
                             navigateCatalogLink(event)
                             closeMenus()
                           }}
-                          className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                          className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent focus-visible:bg-accent focus-visible:text-accent-foreground hover:text-accent-foreground"
                         >
                           {category.name}
                         </Link>
