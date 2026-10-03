@@ -95,8 +95,8 @@ export function ProductSearchInput({ defaultValue = "", className, categoryDocum
         <div className="absolute top-full right-0 left-0 z-40 mt-2 overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-lg">
           {waiting ? <p role="status" className="flex items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground"><Spinner aria-hidden="true" />กำลังค้นหาสินค้า</p>
             : isError ? <div role="alert" className="grid justify-items-center gap-2 p-4 text-center text-sm"><p>ไม่สามารถโหลดคำแนะนำได้</p><button type="button" className="w-fit cursor-pointer text-primary underline" onClick={() => void refetch()}>ลองอีกครั้ง</button></div>
-            : suggestions.length === 0 ? <p role="status" className="p-4 text-center text-sm text-muted-foreground">ไม่พบสินค้าที่ตรงกับคำค้นหา</p> : null}
-          <ul id={listId} role="listbox" aria-label="สินค้าแนะนำจากการค้นหา" className="max-h-80 overflow-y-auto p-1">
+            : suggestions.length === 0 ? <p role="status" className="px-4 py-3 text-center text-sm text-muted-foreground">ไม่พบสินค้าที่ตรงกับคำค้นหา</p> : null}
+          <ul id={listId} role="listbox" aria-label="สินค้าแนะนำจากการค้นหา" className={cn("max-h-80 overflow-y-auto", !waiting && suggestions.length > 0 && "p-1")}>
             {!waiting && suggestions.map((product, index) => (
               <li key={product.documentId} role="presentation">
                 <Link id={`${listId}-${index}`} href={`/products/${product.documentId}/`} prefetch={false}
