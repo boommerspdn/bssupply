@@ -18,7 +18,7 @@ export function ProductPrice({ product, className }: { product: SupplyProduct; c
       </div>
       {discount && (
         <span className="inline-flex shrink-0 items-center rounded-full bg-light-green px-2.5 py-0.5 text-xs font-medium leading-5 text-sale-green ring-1 ring-inset ring-sale-green/10">
-          ลด {new Intl.NumberFormat("th-TH", { maximumFractionDigits: 1 }).format(discount.percentage)}%
+          {new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(discount.percentage)}%
         </span>
       )}
     </div>
