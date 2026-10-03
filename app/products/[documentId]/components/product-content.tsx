@@ -86,21 +86,23 @@ export function ProductContent({ documentId }: { documentId: string }) {
           ]}
         />
 
-        <ProductGallery product={product} />
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(320px,0.75fr)] xl:items-start">
+          <ProductGallery product={product} />
 
-        <section className="grid gap-4">
-          {product.condition ? (
-            <div className="flex flex-wrap gap-2">
-              <Badge tone="muted">{getConditionLabel(product.condition)}</Badge>
+          <div className="grid gap-4 xl:pt-1">
+            {product.condition ? (
+              <div className="flex flex-wrap gap-2">
+                <Badge tone="muted">{getConditionLabel(product.condition)}</Badge>
+              </div>
+            ) : null}
+            <div>
+              <h1 className="text-2xl font-semibold leading-tight">{product.name}</h1>
+              <ProductPrice product={product} className="mt-2 text-xl" />
             </div>
-          ) : null}
-          <div>
-            <h1 className="text-2xl font-semibold leading-tight">{product.name}</h1>
-            <ProductPrice product={product} className="mt-2 text-xl" />
+            {product.summary ? (
+              <p className="leading-7 text-muted-foreground">{getProductPreviewDescription(product)}</p>
+            ) : null}
           </div>
-          {product.summary ? (
-            <p className="max-w-3xl leading-7 text-muted-foreground">{getProductPreviewDescription(product)}</p>
-          ) : null}
         </section>
 
         <section className="grid gap-3">
