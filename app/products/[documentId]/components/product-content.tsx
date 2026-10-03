@@ -49,6 +49,10 @@ export function ProductContent({ documentId }: { documentId: string }) {
       </div>
     )
   }
+  const hasSpecs = Boolean(
+    product.brand || product.model || product.locationNote || product.specs.length
+  )
+  const hasDetails = hasSpecs || Boolean(product.description)
 
   return (
     <>
@@ -106,24 +110,28 @@ export function ProductContent({ documentId }: { documentId: string }) {
           </div>
         </section>
 
-        <section className="grid gap-3">
-          <h2 className="text-lg font-semibold">รายละเอียดสินค้า</h2>
-          <div className="grid gap-2 rounded-lg border bg-card p-4 text-sm">
-            {product.brand ? <SpecRow label="ยี่ห้อ" value={product.brand} /> : null}
-            {product.model ? <SpecRow label="รุ่น" value={product.model} /> : null}
-            {product.locationNote ? (
-              <SpecRow label="หมายเหตุสถานที่" value={product.locationNote} />
+        {hasDetails ? (
+          <section className="grid gap-3">
+            <h2 className="text-lg font-semibold">รายละเอียดสินค้า</h2>
+            {hasSpecs ? (
+              <div className="grid gap-2 rounded-lg border bg-card p-4 text-sm">
+                {product.brand ? <SpecRow label="ยี่ห้อ" value={product.brand} /> : null}
+                {product.model ? <SpecRow label="รุ่น" value={product.model} /> : null}
+                {product.locationNote ? (
+                  <SpecRow label="หมายเหตุสถานที่" value={product.locationNote} />
+                ) : null}
+                {product.specs.map((spec) => (
+                  <SpecRow key={`${spec.label}-${spec.value}`} label={spec.label} value={spec.value} />
+                ))}
+              </div>
             ) : null}
-            {product.specs.map((spec) => (
-              <SpecRow key={`${spec.label}-${spec.value}`} label={spec.label} value={spec.value} />
-            ))}
-          </div>
-          {product.description ? (
-            <div className="whitespace-pre-wrap rounded-lg border bg-card p-4 text-sm leading-7 text-muted-foreground">
-              {product.description}
-            </div>
-          ) : null}
-        </section>
+            {product.description ? (
+              <div className="whitespace-pre-wrap rounded-lg border bg-card p-4 text-sm leading-7 text-muted-foreground">
+                {product.description}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
       </div>
 
       </div>

@@ -27,7 +27,7 @@ export function ProductGallery({ product }: { product: SupplyProduct }) {
   const selectImage = useCallback((index: number) => setSelected(index), [])
   if (!product.images.length)
     return (
-      <div className="aspect-square overflow-hidden rounded-lg border bg-muted">
+      <div className="aspect-[4/3] overflow-hidden rounded-lg border bg-muted">
         <ImagePlaceholder />
       </div>
     )
@@ -122,7 +122,7 @@ function GalleryCarousel({
                   type="button"
                   onClick={onExpand}
                   aria-label={`ขยายรูปที่ ${index + 1}`}
-                  className="relative block aspect-square w-full cursor-zoom-in overflow-hidden rounded-lg border bg-muted/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  className="relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-lg border bg-muted/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   <ReliableImage
                     src={image.url}
