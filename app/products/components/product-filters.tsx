@@ -115,14 +115,14 @@ export function ProductFilters({
         onChange={setCondition}
         options={CONDITION_OPTIONS}
       />
-      <div className="flex gap-2">
+      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
         <FilterSelect
           name="sort"
           defaultValue={values.sort || "newest"}
           options={SORT_OPTIONS}
           className="min-w-0 flex-1"
         />
-        <Button type="submit" className="h-10 cursor-pointer" disabled={isLoading}>
+        <Button type="submit" className="h-10 w-full cursor-pointer sm:w-auto" disabled={isLoading}>
           ค้นหา
         </Button>
       </div>
