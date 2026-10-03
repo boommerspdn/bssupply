@@ -262,3 +262,13 @@ and Back navigation. The fixture did not change CMS data. Screenshots:
 
 Pagination deployment backup:
 `/home/fastontime/domains/subthongpoon.com/public_html-backup-pagination-20261003-172358.tar.gz`.
+
+## October 3, 2026 catalog UI release
+
+The complete BS Supply export was published after the selected pagination page was disabled (no href, aria-disabled, skipped tab order, and no click navigation). This release also publishes the previously local shared search suggestions, six-result limit, centered 46px empty state, pale-green `#E6F4EB` hover accents, shared contact actions, pricing fields, gallery pointers, and reload scroll reset.
+
+Typecheck, lint, and production-CMS build passed; lint retains six image warnings. A browser-only 45-product fixture verified that other page links work and retain search/category filters, while clicking the selected page does not navigate or request products again. CMS records were not modified by this fixture.
+
+Fresh production checks confirmed disabled current-page pagination, the shared hover color and placeholder, compact empty state, product detail HTML reload, no JavaScript page errors, the 404 response, and the existing payload redirect. Live product/listing HTML matched the local export byte for byte. The server `.htaccess` was preserved.
+
+Rollback backup: `/home/fastontime/domains/subthongpoon.com/public_html-backup-selected-pagination-20261003-183240.tar.gz`.

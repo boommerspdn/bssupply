@@ -42,9 +42,11 @@ export function ProductPagination({ page, pageCount, search }: {
         {items.map((item) => (
           <PaginationItem key={item}>
             {typeof item === "number" ? (
-              <PaginationLink href={href(item)} isActive={item === page}
-                aria-label={`หน้า ${item}`} className="cursor-pointer rounded-md shadow-none"
-                onClick={navigateCatalogLink}>{item}</PaginationLink>
+              <PaginationLink href={item === page ? undefined : href(item)} isActive={item === page}
+                aria-disabled={item === page} tabIndex={item === page ? -1 : undefined}
+                aria-label={`หน้า ${item}`}
+                className={`rounded-md shadow-none ${item === page ? "pointer-events-none" : "cursor-pointer"}`}
+                onClick={item === page ? (event) => event.preventDefault() : navigateCatalogLink}>{item}</PaginationLink>
             ) : <PaginationEllipsis />}
           </PaginationItem>
         ))}
